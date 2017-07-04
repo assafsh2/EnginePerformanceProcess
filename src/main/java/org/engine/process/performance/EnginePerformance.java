@@ -105,8 +105,10 @@ public class EnginePerformance extends InnerService {
 
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
-
+		System.out.println("IN execute"+);
 		randomExternalSystemID();
+		System.out.println("after random "+externalSystemID);
+		System.out.println("IN execute "+kafkaAddress+" " +schemaRegustryUrl +  " "+schemaRegustryIdentity );
 		handleCreateMessage();
 		handleUpdateMessage();		
 
@@ -115,9 +117,12 @@ public class EnginePerformance extends InnerService {
 
 	private void handleCreateMessage() throws IOException, RestClientException {
 
+		System.out.println("handleCreateMessage 1");
 		ProducerSettings<String, Object> producerSettings = ProducerSettings
 				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
 				.withBootstrapServers(kafkaAddress);
+		
+		System.out.println("handleCreateMessage "+ producerSettings);
 		
 		creationTopicProducer(producerSettings);
 		String lat = "44.9";
