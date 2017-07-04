@@ -125,10 +125,12 @@ public class EnginePerformance extends InnerService {
 		System.out.println("handleCreateMessage "+ producerSettings);
 		
 		creationTopicProducer(producerSettings);
+		System.out.println("handleCreateMessage 333");
 		String lat = "44.9";
 		String longX = "95.8";
 		sourceTopicProducer(producerSettings,lat,longX);
 		
+		System.out.println("handleCreateMessage 444");
 		sourceRecordsList.clear();
 		updateRecordsList.clear(); 
 		
@@ -147,7 +149,8 @@ public class EnginePerformance extends InnerService {
 		
 		String lat = "34.66";
 		String longX = "48.66";
-		sourceTopicProducer(producerSettings,lat,longX);
+		
+		(producerSettings,lat,longX);
 		
 		sourceRecordsList.clear();
 		updateRecordsList.clear(); 
@@ -211,14 +214,19 @@ public class EnginePerformance extends InnerService {
 	
 	private void sourceTopicProducer(ProducerSettings<String, Object> producerSettings, String lat, String longX) throws IOException, RestClientException {
 		
+		System.out.println("sourceTopicProducer 333");
+		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
 		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
 
+		System.out.println("sourceTopicProducer 444");
 		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
 		.set("lat", Double.parseDouble(lat))
 		.set("long",Double.parseDouble(longX))
 		.build();
+		
+		System.out.println("sourceTopicProducer 555");
 		
 		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
 		.set("coordinate", coordinate)
@@ -226,6 +234,8 @@ public class EnginePerformance extends InnerService {
 		.set("entityOffset", 50l)
 		.set("sourceName",sourceName)
 		.build();
+		
+		System.out.println("sourceTopicProducer 666");
 
 		Schema dataSchema = getSchema("generalEntityAttributes");
 		Schema nationalitySchema = dataSchema.getField("nationality").schema();
