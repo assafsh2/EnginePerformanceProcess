@@ -150,7 +150,7 @@ public class EnginePerformance extends InnerService {
 		String lat = "34.66";
 		String longX = "48.66";
 		
-		(producerSettings,lat,longX);
+		sourceTopicProducer(producerSettings,lat,longX);
 		
 		sourceRecordsList.clear();
 		updateRecordsList.clear(); 
