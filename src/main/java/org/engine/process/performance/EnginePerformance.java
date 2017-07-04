@@ -105,7 +105,7 @@ public class EnginePerformance extends InnerService {
 
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
-		System.out.println("IN execute"+);
+		System.out.println("IN execute");
 		randomExternalSystemID();
 		System.out.println("after random "+externalSystemID);
 		System.out.println("IN execute "+kafkaAddress+" " +schemaRegustryUrl +  " "+schemaRegustryIdentity );
