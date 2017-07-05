@@ -186,7 +186,7 @@ public class EnginePerformance extends InnerService {
 			}
 
 			System.out.println("KafkaConsumer2");
-			TopicPartition partitionUpdate = new TopicPartition(sourceName, 0);
+			TopicPartition partitionUpdate = new TopicPartition("update", 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
 
 				System.out.println("KafkaConsumer443");
@@ -196,7 +196,7 @@ public class EnginePerformance extends InnerService {
 				consumer.assign(Arrays.asList(partitionUpdate));
 				consumer.seekToEnd(Arrays.asList(partitionUpdate));
 				System.out.println("KafkaConsumer444443");
-				lastOffsetForSource = consumer.position(partitionUpdate);
+				lastOffsetForUpdate = consumer.position(partitionUpdate);
 			}		     
 
 			System.out.println("KafkaConsumer3");
