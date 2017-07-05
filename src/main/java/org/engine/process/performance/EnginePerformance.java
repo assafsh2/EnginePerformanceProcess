@@ -273,7 +273,10 @@ public class EnginePerformance extends InnerService {
 		
 		System.out.println("creationTopicProducer 666");
 		
-		Schema creationSchema = getSchema("detectionEvent");
+		if(testing)
+			Schema creationSchema = getSchema("detectionEvent");
+		else
+			Schema creationSchema = getSchema("org.sourcestream.entities.detectionEvent");
 		
 		System.out.println("creationTopicProducer 777"+creationSchema.toString());
 		
