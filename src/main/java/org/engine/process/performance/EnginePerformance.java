@@ -375,6 +375,9 @@ public class EnginePerformance extends InnerService {
 	}
 
 	private Schema getSchema(String name) throws IOException, RestClientException {
+		if(!testing) {
+			name = "org.sourcestream.entities."+name;
+		}
 		int id = schemaRegistry.getLatestSchemaMetadata(name).getId();
 		return schemaRegistry.getByID(id);
 	}
