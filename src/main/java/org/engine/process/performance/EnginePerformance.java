@@ -21,7 +21,10 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -39,6 +42,13 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.schemaregistry.storage.exceptions.SerializationException;
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+
+import java.util.Properties;
 
 public class EnginePerformance extends InnerService {
 
@@ -105,10 +115,8 @@ public class EnginePerformance extends InnerService {
 
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
-		System.out.println("IN execute");
 		randomExternalSystemID();
-		System.out.println("after random "+externalSystemID);
-		System.out.println("IN execute "+kafkaAddress+" " +schemaRegustryUrl +  " "+schemaRegustryIdentity );
+		System.out.println("after random "+externalSystemID); 
 		handleCreateMessage();
 		handleUpdateMessage();		
 
@@ -117,27 +125,208 @@ public class EnginePerformance extends InnerService {
 
 	private void handleCreateMessage() throws IOException, RestClientException {
 
-		ProducerSettings<String, Object> producerSettings = ProducerSettings
-				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
-				.withBootstrapServers(kafkaAddress);
-		
-		System.out.println("handleCreateMessage "+ producerSettings);
-		
-		creationTopicProducer(producerSettings); 
-		String lat = "44.9";
-		String longX = "95.8";
-		sourceTopicProducer(producerSettings,lat,longX);
-		 
-		sourceRecordsList.clear();
-		updateRecordsList.clear(); 
-		
-		callConsumers();
+		//Akka Actor
+		if(testing) {
 
-		long diffTime = getTimeDifferences(lat, longX);
-		output[0] = "The create took "+diffTime +" millisec";
+			ProducerSettings<String, Object> producerSettings = ProducerSettings
+					.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
+					.withBootstrapServers(kafkaAddress);
+
+			creationTopicProducer(producerSettings); 
+			String lat = "44.9";
+			String longX = "95.8";
+			sourceTopicProducer(producerSettings,lat,longX);
+
+			sourceRecordsList.clear();
+			updateRecordsList.clear(); 
+
+			callConsumers();
+
+
+			long diffTime = getTimeDifferences(lat, longX);
+			output[0] = "The create took "+diffTime +" millisec";
+		}
+		//KafkaConsumer
+		else {
+
+			System.out.println("KafkaConsumer");
+			
+			Properties props = new Properties();
+			props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);
+			props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+					StringSerializer.class);
+			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+					io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+			props.put("schema.registry.url", "http://"+schemaRegustryUrl);
+			
+			System.out.println(props);
+
+			String lat = "44.9";
+			String longX = "95.8";
+
+			//Get the latest offest of the topics for latest use
+			long lastOffsetForSource;
+			long lastOffsetForUpdate;
+
+			TopicPartition partition = new TopicPartition(sourceName, 0);
+			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
+
+				consumer.subscribe(Arrays.asList(sourceName));
+				consumer.seekToEnd(Arrays.asList(partition));
+				lastOffsetForSource = consumer.position(partition);
+			}
+
+			System.out.println("KafkaConsumer2");
+			
+			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
+
+				consumer.subscribe(Arrays.asList("update"));
+				consumer.seekToEnd(Arrays.asList(partition));
+				lastOffsetForUpdate = consumer.position(partition);
+			}		     
+
+			System.out.println("KafkaConsumer3");
+			
+			System.out.println("lastOffsetForSource "+lastOffsetForSource+" lastOffsetForUpdate "+lastOffsetForUpdate);
+
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
+
+				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
+				producer.send(record);
+
+				ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName,getSourceGenericRecord(lat, longX));
+				producer.send(record2);
+			}
+			
+			System.out.println("KafkaConsumer4");
+
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			sourceRecordsList.clear();
+			updateRecordsList.clear(); 
+
+			// create kafka consumer
+			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
+
+			consumer.subscribe(Arrays.asList(sourceName));
+			consumer.seek(partition, lastOffsetForSource);
+			boolean isRunning = true;
+			while (isRunning) {
+				ConsumerRecords<Object, Object> records = consumer.poll(100);
+
+
+				for (ConsumerRecord<Object, Object> param : records) {
+
+					GenericRecord record = (GenericRecord)param.value();
+
+					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
+					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
+					String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
+					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
+					String latTmp = coordinate.get("lat").toString(); 
+					String longXTmp = coordinate.get("long").toString();
+
+					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
+						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+						isRunning = false;
+						consumer.close();
+
+					}
+
+				}
+			}
+			
+			
+			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
+
+			consumer.subscribe(Arrays.asList("update"));
+			consumer.seek(partition, lastOffsetForUpdate);
+			isRunning = true;
+			while (isRunning) {
+				ConsumerRecords<Object, Object> records = consumer2.poll(100);
+
+
+				for (ConsumerRecord<Object, Object> param : records) {
+
+					GenericRecord record = (GenericRecord)param.value();
+					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
+					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
+					String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
+					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
+					String latTmp = coordinate.get("lat").toString(); 
+					String longXTmp = coordinate.get("long").toString();
+
+					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
+						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+						isRunning = false;
+						consumer2.close();
+
+					}
+
+				}
+			}
+			
+			long diffTime = getTimeDifferences(lat, longX);
+			output[0] = "The create took "+diffTime +" millisec";
+			System.out.println(output[0]);
+
+		}
 
 	}
 
+	private GenericRecord getCreationGenericRecord() throws IOException, RestClientException {
+		
+		Schema creationSchema = getSchema("detectionEvent"); 
+		GenericRecord creationRecord = new GenericRecordBuilder(creationSchema)
+		.set("sourceName", sourceName)
+		.set("externalSystemID",externalSystemID)
+		.build();
+		
+		return creationRecord;
+	}
+
+	private GenericRecord getSourceGenericRecord(String lat, String longX) throws IOException, RestClientException {
+		
+		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
+		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
+
+		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
+		.set("lat", Double.parseDouble(lat))
+		.set("long",Double.parseDouble(longX))
+		.build();
+		
+		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
+		.set("coordinate", coordinate)
+		.set("isNotTracked", false)
+		.set("entityOffset", 50l)
+		.set("sourceName",sourceName)
+		.build();		 
+
+		Schema dataSchema = getSchema("generalEntityAttributes");
+		Schema nationalitySchema = dataSchema.getField("nationality").schema();
+		Schema categorySchema = dataSchema.getField("category").schema();
+		GenericRecord dataRecord = new GenericRecordBuilder(dataSchema)
+		.set("basicAttributes", basicAttributes)
+		.set("speed", 4.7)
+		.set("elevation", 7.8)
+		.set("course", 8.3)
+		.set("nationality", new GenericData.EnumSymbol(nationalitySchema, "USA"))
+		.set("category", new GenericData.EnumSymbol(categorySchema, "boat"))
+		.set("pictureURL", "huh?")
+		.set("height", 6.1)
+		.set("nickname", "rerere")
+		.set("externalSystemID", externalSystemID)
+		.build();
+
+		
+		return dataRecord;
+	}
+	
 	private void handleUpdateMessage() throws IOException, RestClientException {
 
 		ProducerSettings<String, Object> producerSettings = ProducerSettings
@@ -206,49 +395,14 @@ public class EnginePerformance extends InnerService {
 
 		System.out.println("=====update");
 		Consumer.committableSource(consumerSettings, Subscriptions.topics("update"))
-		.map(result -> result.record()).runForeach(f, materializer);		
+		.map(result -> result.record()).runForeach(f, materializer);
 	}
 	
 	private void sourceTopicProducer(ProducerSettings<String, Object> producerSettings, String lat, String longX) throws IOException, RestClientException {
 		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
-		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
-		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
 
-		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
-		.set("lat", Double.parseDouble(lat))
-		.set("long",Double.parseDouble(longX))
-		.build();
-		
-		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
-		.set("coordinate", coordinate)
-		.set("isNotTracked", false)
-		.set("entityOffset", 50l)
-		.set("sourceName",sourceName)
-		.build();		 
-
-		Schema dataSchema = getSchema("generalEntityAttributes");
-		Schema nationalitySchema = dataSchema.getField("nationality").schema();
-		Schema categorySchema = dataSchema.getField("category").schema();
-		GenericRecord dataRecord = new GenericRecordBuilder(dataSchema)
-		.set("basicAttributes", basicAttributes)
-		.set("speed", 4.7)
-		.set("elevation", 7.8)
-		.set("course", 8.3)
-		.set("nationality", new GenericData.EnumSymbol(nationalitySchema, "USA"))
-		.set("category", new GenericData.EnumSymbol(categorySchema, "boat"))
-		.set("pictureURL", "huh?")
-		.set("height", 6.1)
-		.set("nickname", "rerere")
-		.set("externalSystemID", externalSystemID)
-		.build();
-
-		/*ProducerRecord<String, Object> record = new ProducerRecord<>("source1",  dataRecord);
-		KafkaProducer<String, Object> producer = new KafkaProducer<>(props);
-		producer.send(record);
-		 */
-
-		ProducerRecord<String, Object> producerRecord = new ProducerRecord<String, Object>(sourceName, dataRecord);
+		ProducerRecord<String, Object> producerRecord = new ProducerRecord<String, Object>(sourceName, getSourceGenericRecord(lat, longX));
 
 		Source.from(Arrays.asList(producerRecord))
 		.to(sink)
@@ -259,16 +413,7 @@ public class EnginePerformance extends InnerService {
 	private void creationTopicProducer(ProducerSettings<String, Object> producerSettings) throws IOException, RestClientException {
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		
-		Schema creationSchema = getSchema("detectionEvent");
-		
-		System.out.println("creationTopicProducer 777"+creationSchema.toString());
-		
-		GenericRecord creationRecord = new GenericRecordBuilder(creationSchema)
-		.set("sourceName", sourceName)
-		.set("externalSystemID",externalSystemID)
-		.build();
-
-		ProducerRecord<String, Object> producerRecord = new ProducerRecord<String, Object>("creation", creationRecord);
+		ProducerRecord<String, Object> producerRecord = new ProducerRecord<String, Object>("creation", getCreationGenericRecord());
 
 		Source.from(Arrays.asList(producerRecord))
 		.to(sink)
@@ -299,7 +444,7 @@ public class EnginePerformance extends InnerService {
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
 		System.out.println("Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic update: "+source.toString());
+		System.out.println("Consumer from topic "+sourceName+": "+source.toString());
 		
 		return update.second() - source.second();	
 	}
