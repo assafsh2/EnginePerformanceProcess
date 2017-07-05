@@ -272,7 +272,7 @@ public class EnginePerformance extends InnerService {
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		
 		System.out.println("creationTopicProducer 666");
-		Schema creationSchema = creationSchema = getSchema("detectionEvent");
+		Schema creationSchema = getSchema("detectionEvent");
 		
 		System.out.println("creationTopicProducer 777"+creationSchema.toString());
 		
