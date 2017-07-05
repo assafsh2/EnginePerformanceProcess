@@ -228,7 +228,7 @@ public class EnginePerformance extends InnerService {
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
 
 			consumer.subscribe(Arrays.asList(sourceName));
-			consumer.seek(partition, lastOffsetForSource);
+			consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer.poll(100);
@@ -259,7 +259,7 @@ public class EnginePerformance extends InnerService {
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 
 			consumer.subscribe(Arrays.asList("update"));
-			consumer.seek(partition, lastOffsetForUpdate);
+			consumer.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer2.poll(100);
