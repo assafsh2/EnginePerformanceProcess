@@ -161,7 +161,7 @@ public class EnginePerformance extends InnerService {
 					StringDeserializer.class);
 			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
 			          io.confluent.kafka.serializers.KafkaAvroDeserializer.class);		
-			props.put("schema.registry.url", "http://"+schemaRegustryUrl);
+			props.put("schema.registry.url", schemaRegustryUrl);
 			props.put("group.id", "group1");
 			
 			System.out.println(props);
