@@ -162,6 +162,7 @@ public class EnginePerformance extends InnerService {
 			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
 			          io.confluent.kafka.serializers.KafkaAvroDeserializer.class);		
 			props.put("schema.registry.url", "http://"+schemaRegustryUrl);
+			props.put("group.id", "group1");
 			
 			System.out.println(props);
 
@@ -172,24 +173,30 @@ public class EnginePerformance extends InnerService {
 			long lastOffsetForSource;
 			long lastOffsetForUpdate;
 
-			TopicPartition partition = new TopicPartition(sourceName, 0);
+			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
 				System.out.println("KafkaConsumer44");
 				
 				consumer.subscribe(Arrays.asList(sourceName));
 				System.out.println("KafkaConsumer445");
-				consumer.seekToEnd(Arrays.asList(partition));
+				consumer.assign(Arrays.asList(partitionSource));
+				consumer.seekToEnd(Arrays.asList(partitionSource));
 				System.out.println("KafkaConsumer44444");
-				lastOffsetForSource = consumer.position(partition);
+				lastOffsetForSource = consumer.position(partitionSource);
 			}
 
 			System.out.println("KafkaConsumer2");
-			
+			TopicPartition partitionUpdate = new TopicPartition(sourceName, 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
 
-				consumer.subscribe(Arrays.asList("update"));
-				consumer.seekToEnd(Arrays.asList(partition));
-				lastOffsetForUpdate = consumer.position(partition);
+				System.out.println("KafkaConsumer443");
+				
+				consumer.subscribe(Arrays.asList("update3"));
+				System.out.println("KafkaConsumer4453");
+				consumer.assign(Arrays.asList(partitionUpdate));
+				consumer.seekToEnd(Arrays.asList(partitionUpdate));
+				System.out.println("KafkaConsumer444443");
+				lastOffsetForSource = consumer.position(partitionUpdate);
 			}		     
 
 			System.out.println("KafkaConsumer3");
