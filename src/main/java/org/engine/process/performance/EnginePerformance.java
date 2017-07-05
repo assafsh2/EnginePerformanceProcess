@@ -1,3 +1,22 @@
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Marketplace
+Gist
+ @assafsh2
+ Sign out
+ Watch 0
+  Star 0
+  Fork 0 assafsh2/EnginePerformanceProcess
+ Code  Issues 0  Pull requests 0  Projects 0  Wiki  Settings Insights 
+Tree: 9513a914ba Find file Copy pathEnginePerformanceProcess/src/main/java/org/engine/process/performance/EnginePerformance.java
+9513a91  an hour ago
+@assafsh2 assafsh2 Update EnginePerformance.java
+1 contributor
+RawBlameHistory    
+379 lines (296 sloc)  13.6 KB
 package org.engine.process.performance;
 
 import java.io.IOException;
@@ -105,8 +124,10 @@ public class EnginePerformance extends InnerService {
 
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
-
-		randomExternalSystemID(); 
+		System.out.println("IN execute");
+		randomExternalSystemID();
+		System.out.println("after random "+externalSystemID);
+		System.out.println("IN execute "+kafkaAddress+" " +schemaRegustryUrl +  " "+schemaRegustryIdentity );
 		handleCreateMessage();
 		handleUpdateMessage();		
 
@@ -115,15 +136,20 @@ public class EnginePerformance extends InnerService {
 
 	private void handleCreateMessage() throws IOException, RestClientException {
 
+		System.out.println("handleCreateMessage 1");
 		ProducerSettings<String, Object> producerSettings = ProducerSettings
 				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
 				.withBootstrapServers(kafkaAddress);
-			
+		
+		System.out.println("handleCreateMessage "+ producerSettings);
+		
 		creationTopicProducer(producerSettings);
+		System.out.println("handleCreateMessage 333");
 		String lat = "44.9";
 		String longX = "95.8";
 		sourceTopicProducer(producerSettings,lat,longX);
 		
+		System.out.println("handleCreateMessage 444");
 		sourceRecordsList.clear();
 		updateRecordsList.clear(); 
 		
@@ -142,6 +168,7 @@ public class EnginePerformance extends InnerService {
 		
 		String lat = "34.66";
 		String longX = "48.66";
+		
 		sourceTopicProducer(producerSettings,lat,longX);
 		
 		sourceRecordsList.clear();
@@ -171,8 +198,8 @@ public class EnginePerformance extends InnerService {
 			public void apply(ConsumerRecord<String, Object> param)
 					throws Exception {
 
-			//	System.out.println("Topic is: "+param.topic()+" timestamp is: "+param.timestamp() + 
-			//			" value is: "+ param.value());
+				//System.out.println("Topic is: "+param.topic()+" timestamp is: "+param.timestamp() + 
+				//		" value is: "+ param.value());
 				if( param.topic().equals("update")) {
 					updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 				}
@@ -188,6 +215,8 @@ public class EnginePerformance extends InnerService {
 			e.printStackTrace();
 		}
 
+		System.out.println("\n\n\n====="+sourceName);		
+
 		Consumer.committableSource(consumerSettings, Subscriptions.topics(sourceName))
 		.map(result -> result.record()).runForeach(f, materializer);
 
@@ -197,20 +226,26 @@ public class EnginePerformance extends InnerService {
 			e.printStackTrace();
 		}
 
+		System.out.println("=====update");
 		Consumer.committableSource(consumerSettings, Subscriptions.topics("update"))
 		.map(result -> result.record()).runForeach(f, materializer);		
 	}
 	
 	private void sourceTopicProducer(ProducerSettings<String, Object> producerSettings, String lat, String longX) throws IOException, RestClientException {
 		
+		System.out.println("sourceTopicProducer 333");
+		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
 		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
 
+		System.out.println("sourceTopicProducer 444");
 		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
 		.set("lat", Double.parseDouble(lat))
 		.set("long",Double.parseDouble(longX))
 		.build();
+		
+		System.out.println("sourceTopicProducer 555");
 		
 		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
 		.set("coordinate", coordinate)
@@ -218,6 +253,8 @@ public class EnginePerformance extends InnerService {
 		.set("entityOffset", 50l)
 		.set("sourceName",sourceName)
 		.build();
+		
+		System.out.println("sourceTopicProducer 666");
 
 		Schema dataSchema = getSchema("generalEntityAttributes");
 		Schema nationalitySchema = dataSchema.getField("nationality").schema();
@@ -249,10 +286,15 @@ public class EnginePerformance extends InnerService {
 	}
 	
 	private void creationTopicProducer(ProducerSettings<String, Object> producerSettings) throws IOException, RestClientException {
+		System.out.println("creationTopicProducer 555");
 		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
-
-		Schema creationSchema = getSchema("detectionEvent");
+		
+		System.out.println("creationTopicProducer 666");
+		Schema creationSchema = creationSchema = getSchema("detectionEvent");
+		
+		System.out.println("creationTopicProducer 777"+creationSchema.toString());
+		
 		GenericRecord creationRecord = new GenericRecordBuilder(creationSchema)
 		.set("sourceName", sourceName)
 		.set("externalSystemID",externalSystemID)
@@ -285,12 +327,9 @@ public class EnginePerformance extends InnerService {
 
 			return externalSystemIDTmp.equals(externalSystemID) && lat.equals(inputLat) &&  longX.equals(inputLongX);		 
 		};
-		
-		Pair<GenericRecord, Long> update = updateRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic update:"+update);
-		Pair<GenericRecord, Long> source =sourceRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic "+sourceName+":"+source);
-		return update.second() - source.second();	
+
+		return updateRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0).second() -
+				sourceRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0).second();	
 
 	}
 
@@ -298,7 +337,6 @@ public class EnginePerformance extends InnerService {
 
 		Random r = new Random(); 
 		externalSystemID = "performanceProcess-"+r.nextInt(10000);		
-		System.out.println("Random externalSystemID is: "+externalSystemID); 
 	} 
 
 
@@ -357,3 +395,5 @@ public class EnginePerformance extends InnerService {
 		return schemaRegistry.getByID(id);
 	}
 }
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc. Terms Privacy Security Status Help
