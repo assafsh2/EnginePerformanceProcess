@@ -170,9 +170,12 @@ public class EnginePerformance extends InnerService {
 
 			TopicPartition partition = new TopicPartition(sourceName, 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
-
+				System.out.println("KafkaConsumer44");
+				
 				consumer.subscribe(Arrays.asList(sourceName));
+				System.out.println("KafkaConsumer445");
 				consumer.seekToEnd(Arrays.asList(partition));
+				System.out.println("KafkaConsumer44444");
 				lastOffsetForSource = consumer.position(partition);
 			}
 
