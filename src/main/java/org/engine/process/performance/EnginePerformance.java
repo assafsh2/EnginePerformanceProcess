@@ -117,20 +117,17 @@ public class EnginePerformance extends InnerService {
 
 	private void handleCreateMessage() throws IOException, RestClientException {
 
-		System.out.println("handleCreateMessage 1");
 		ProducerSettings<String, Object> producerSettings = ProducerSettings
 				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
 				.withBootstrapServers(kafkaAddress);
 		
 		System.out.println("handleCreateMessage "+ producerSettings);
 		
-		creationTopicProducer(producerSettings);
-		System.out.println("handleCreateMessage 333");
+		creationTopicProducer(producerSettings); 
 		String lat = "44.9";
 		String longX = "95.8";
 		sourceTopicProducer(producerSettings,lat,longX);
-		
-		System.out.println("handleCreateMessage 444");
+		 
 		sourceRecordsList.clear();
 		updateRecordsList.clear(); 
 		
@@ -214,28 +211,21 @@ public class EnginePerformance extends InnerService {
 	
 	private void sourceTopicProducer(ProducerSettings<String, Object> producerSettings, String lat, String longX) throws IOException, RestClientException {
 		
-		System.out.println("sourceTopicProducer 333");
-		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
 		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
 
-		System.out.println("sourceTopicProducer 444");
 		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
 		.set("lat", Double.parseDouble(lat))
 		.set("long",Double.parseDouble(longX))
 		.build();
-		
-		System.out.println("sourceTopicProducer 555");
 		
 		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
 		.set("coordinate", coordinate)
 		.set("isNotTracked", false)
 		.set("entityOffset", 50l)
 		.set("sourceName",sourceName)
-		.build();
-		
-		System.out.println("sourceTopicProducer 666");
+		.build();		 
 
 		Schema dataSchema = getSchema("generalEntityAttributes");
 		Schema nationalitySchema = dataSchema.getField("nationality").schema();
@@ -267,11 +257,8 @@ public class EnginePerformance extends InnerService {
 	}
 	
 	private void creationTopicProducer(ProducerSettings<String, Object> producerSettings) throws IOException, RestClientException {
-		System.out.println("creationTopicProducer 555");
-		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		
-		System.out.println("creationTopicProducer 666");
 		Schema creationSchema = getSchema("detectionEvent");
 		
 		System.out.println("creationTopicProducer 777"+creationSchema.toString());
@@ -309,9 +296,12 @@ public class EnginePerformance extends InnerService {
 			return externalSystemIDTmp.equals(externalSystemID) && lat.equals(inputLat) &&  longX.equals(inputLongX);		 
 		};
 
-		return updateRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0).second() -
-				sourceRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0).second();	
-
+		Pair<GenericRecord,Long> update = updateRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
+		System.out.println("Consumer from topic update: "+update.toString());
+		Pair<GenericRecord,Long> source = sourceRecordsList.stream().filter(predicate).collect(Collectors.toList()).get(0);
+		System.out.println("Consumer from topic update: "+source.toString());
+		
+		return update.second() - source.second();	
 	}
 
 	private void randomExternalSystemID() {
