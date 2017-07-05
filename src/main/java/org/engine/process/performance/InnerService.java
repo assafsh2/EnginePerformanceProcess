@@ -17,6 +17,7 @@ public abstract class InnerService {
 		}
 		catch(Exception e) {
 			System.out.println(e.getStackTrace());
+			System.out.println(e.getMessage());
 			return ServiceStatus.FAILURE;
 		} 
 	}
