@@ -226,7 +226,7 @@ public class EnginePerformance extends InnerService {
 
 			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
-
+			System.out.println("KafkaConsumer5");
 			consumer.subscribe(Arrays.asList(sourceName));
 			//consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
@@ -249,16 +249,16 @@ public class EnginePerformance extends InnerService {
 						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 						isRunning = false;
 						consumer.close();
-
+						break;
 					}
 
 				}
 			}
 			
-			
+			System.out.println("KafkaConsumer6");
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 
-			consumer.subscribe(Arrays.asList("update"));
+			consumer2.subscribe(Arrays.asList("update"));
 			//consumer.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
@@ -277,8 +277,9 @@ public class EnginePerformance extends InnerService {
 
 					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
 						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
-						isRunning = false;
+						isRunning = false;						
 						consumer2.close();
+						break;
 
 					}
 
