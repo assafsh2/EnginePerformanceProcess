@@ -169,7 +169,7 @@ public class EnginePerformance extends InnerService {
 			String lat = "44.9";
 			String longX = "95.8";
 
-			//Get the latest offest of the topics for latest use
+			/*Get the latest offest of the topics for latest use
 			long lastOffsetForSource;
 			long lastOffsetForUpdate;
 
@@ -202,7 +202,7 @@ public class EnginePerformance extends InnerService {
 			System.out.println("KafkaConsumer3");
 			
 			System.out.println("lastOffsetForSource "+lastOffsetForSource+" lastOffsetForUpdate "+lastOffsetForUpdate);
-
+*/
 			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
 				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
@@ -227,8 +227,8 @@ public class EnginePerformance extends InnerService {
 			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
 
-			consumer.subscribe(Arrays.asList(sourceName));
-			consumer.seek(partitionSource, lastOffsetForSource);
+			//consumer.subscribe(Arrays.asList(sourceName));
+			//consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer.poll(100);
@@ -259,7 +259,7 @@ public class EnginePerformance extends InnerService {
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 
 			consumer.subscribe(Arrays.asList("update"));
-			consumer.seek(partitionUpdate, lastOffsetForUpdate);
+			//consumer.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer2.poll(100);
