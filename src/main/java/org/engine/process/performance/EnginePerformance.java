@@ -267,10 +267,16 @@ public class EnginePerformance extends InnerService {
 	}
 	
 	private void creationTopicProducer(ProducerSettings<String, Object> producerSettings) throws IOException, RestClientException {
+		System.out.println("creationTopicProducer 555");
 		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
-
+		
+		System.out.println("creationTopicProducer 666");
+		
 		Schema creationSchema = getSchema("detectionEvent");
+		
+		System.out.println("creationTopicProducer 777"+creationSchema.toString());
+		
 		GenericRecord creationRecord = new GenericRecordBuilder(creationSchema)
 		.set("sourceName", sourceName)
 		.set("externalSystemID",externalSystemID)
