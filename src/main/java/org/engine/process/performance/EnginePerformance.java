@@ -227,7 +227,7 @@ public class EnginePerformance extends InnerService {
 			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
 
-			//consumer.subscribe(Arrays.asList(sourceName));
+			consumer.subscribe(Arrays.asList(sourceName));
 			//consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
