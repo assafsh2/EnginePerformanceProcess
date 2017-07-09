@@ -168,11 +168,12 @@ public class EnginePerformance extends InnerService {
 
 			String lat = "44.9";
 			String longX = "95.8";
+			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
+			TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
 			/*Get the latest offest of the topics for latest use
 			long lastOffsetForSource;
 			long lastOffsetForUpdate;
-
 			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
 				System.out.println("KafkaConsumer44");
@@ -184,11 +185,9 @@ public class EnginePerformance extends InnerService {
 				System.out.println("KafkaConsumer44444");
 				lastOffsetForSource = consumer.position(partitionSource);
 			}
-
 			System.out.println("KafkaConsumer2");
 			TopicPartition partitionUpdate = new TopicPartition("update", 0);
 			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
-
 				System.out.println("KafkaConsumer443");
 				
 				consumer.subscribe(Arrays.asList("update3"));
@@ -198,11 +197,48 @@ public class EnginePerformance extends InnerService {
 				System.out.println("KafkaConsumer444443");
 				lastOffsetForUpdate = consumer.position(partitionUpdate);
 			}		     
-
 			System.out.println("KafkaConsumer3");
 			
 			System.out.println("lastOffsetForSource "+lastOffsetForSource+" lastOffsetForUpdate "+lastOffsetForUpdate);
-*/
+ 
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
+
+				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
+				producer.send(record);
+
+				ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName,getSourceGenericRecord(lat, longX));
+				producer.send(record2);
+			}*/
+			
+			System.out.println("KafkaConsumer4");
+
+
+			
+			sourceRecordsList.clear();
+			updateRecordsList.clear(); 
+
+			// create kafka consumer
+			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
+			System.out.println("KafkaConsumer5");
+			consumer.subscribe(Arrays.asList(sourceName));
+			consumer.seekToEnd(Arrays.asList(partitionSource));
+			
+			System.out.println("KafkaConsumer66");
+			
+			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
+			consumer2.subscribe(Arrays.asList("update"));
+			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
+			
+			System.out.println("KafkaConsumer4445");
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+			
+			System.out.println("KafkaConsumer444345");
 			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
 				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
@@ -212,22 +248,15 @@ public class EnginePerformance extends InnerService {
 				producer.send(record2);
 			}
 			
-			System.out.println("KafkaConsumer4");
-
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}	
 			
-			sourceRecordsList.clear();
-			updateRecordsList.clear(); 
-
-			// create kafka consumer
-			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
-			System.out.println("KafkaConsumer5");
-			consumer.subscribe(Arrays.asList(sourceName));
+			System.out.println("KafkaConsumerAAAA");
+			
 			//consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
@@ -235,7 +264,7 @@ public class EnginePerformance extends InnerService {
 
 
 				for (ConsumerRecord<Object, Object> param : records) {
-				 	System.out.println("In "+param.value());
+
 					GenericRecord record = (GenericRecord)param.value();
 
 					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
@@ -255,10 +284,9 @@ public class EnginePerformance extends InnerService {
 				}
 			}
 			
-			System.out.println("KafkaConsumer6");
-			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
+			System.out.println("KafkaConsumer6"); 
 
-			consumer2.subscribe(Arrays.asList("update"));
+ 
 			//consumer.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
