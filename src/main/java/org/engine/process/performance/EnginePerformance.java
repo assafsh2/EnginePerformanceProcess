@@ -220,13 +220,15 @@ public class EnginePerformance extends InnerService {
 			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
 			System.out.println("KafkaConsumer5");
-			consumer.subscribe(Arrays.asList(sourceName));
+			//consumer.subscribe(Arrays.asList(sourceName));
+			consumer.assign(Arrays.asList(partitionSource));
 			consumer.seekToEnd(Arrays.asList(partitionSource));
 			
 			System.out.println("KafkaConsumer66");
 			
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
-			consumer2.subscribe(Arrays.asList("update"));
+			//consumer2.subscribe(Arrays.asList("update"));
+			consumer2.assign(Arrays.asList(partitionUpdate));
 			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 			
 			System.out.println("KafkaConsumer4445");
