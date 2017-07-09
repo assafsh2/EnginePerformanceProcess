@@ -296,7 +296,7 @@ public class EnginePerformance extends InnerService {
 			System.out.println("KafkaConsumer6"); 
 
  
-			consumer.seek(partitionUpdate, lastOffsetForUpdate);
+			consumer2.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer2.poll(10000);
