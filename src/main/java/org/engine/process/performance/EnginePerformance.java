@@ -216,6 +216,10 @@ public class EnginePerformance extends InnerService {
 			
 			sourceRecordsList.clear();
 			updateRecordsList.clear(); 
+			
+ 
+			long lastOffsetForSource;
+			long lastOffsetForUpdate;
 
 			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
@@ -223,13 +227,14 @@ public class EnginePerformance extends InnerService {
 			//consumer.subscribe(Arrays.asList(sourceName));
 			consumer.assign(Arrays.asList(partitionSource));
 			consumer.seekToEnd(Arrays.asList(partitionSource));
+			lastOffsetForSource = consumer.position(partitionSource);
 			
 			System.out.println("KafkaConsumer66");
 			
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
-			//consumer2.subscribe(Arrays.asList("update"));
-			consumer2.assign(Arrays.asList(partitionUpdate));
+			consumer2.subscribe(Arrays.asList("update"));
 			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
+			lastOffsetForUpdate = consumer2.position(partitionUpdate);
 			
 			System.out.println("KafkaConsumer4445");
 			
@@ -259,16 +264,16 @@ public class EnginePerformance extends InnerService {
 			
 			System.out.println("KafkaConsumerAAAA");
 			
-			//consumer.seek(partitionSource, lastOffsetForSource);
+			consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer.poll(10000);
 
-
 				for (ConsumerRecord<Object, Object> param : records) {
 
+					System.out.println(param.value());
 					GenericRecord record = (GenericRecord)param.value();
-
+					
 					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
 					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
 					String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
@@ -278,6 +283,7 @@ public class EnginePerformance extends InnerService {
 
 					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
 						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+						System.out.println("STOP");
 						isRunning = false;
 						consumer.close();
 						break;
@@ -289,7 +295,7 @@ public class EnginePerformance extends InnerService {
 			System.out.println("KafkaConsumer6"); 
 
  
-			//consumer.seek(partitionUpdate, lastOffsetForUpdate);
+			consumer.seek(partitionUpdate, lastOffsetForUpdate);
 			isRunning = true;
 			while (isRunning) {
 				ConsumerRecords<Object, Object> records = consumer2.poll(10000);
