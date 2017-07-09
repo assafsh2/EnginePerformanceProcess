@@ -41,11 +41,9 @@ import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import io.confluent.kafka.schemaregistry.storage.exceptions.SerializationException;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
@@ -127,7 +125,8 @@ public class EnginePerformance extends InnerService {
 
 		//Akka Actor
 		if(testing) {
-
+			System.out.println("Create message with Akka Actor");
+			
 			ProducerSettings<String, Object> producerSettings = ProducerSettings
 					.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
 					.withBootstrapServers(kafkaAddress);
@@ -149,105 +148,35 @@ public class EnginePerformance extends InnerService {
 		//KafkaConsumer
 		else {
 
-			System.out.println("KafkaConsumer");
+			System.out.println("Create message with KafkaConsumer");
 			
-			Properties props = new Properties();
-			props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);
-			props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-					StringSerializer.class);
-			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-			          io.confluent.kafka.serializers.KafkaAvroSerializer.class);
-			props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-					StringDeserializer.class);
-			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-			          io.confluent.kafka.serializers.KafkaAvroDeserializer.class);		
-			props.put("schema.registry.url", schemaRegustryUrl);
-			props.put("group.id", "group1");
-			
-			System.out.println(props);
+			Properties props = getProperties();
 
 			String lat = "44.9";
 			String longX = "95.8";
 			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
 			TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
-			/*Get the latest offest of the topics for latest use
-			long lastOffsetForSource;
-			long lastOffsetForUpdate;
-			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
-			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
-				System.out.println("KafkaConsumer44");
-				
-				consumer.subscribe(Arrays.asList(sourceName));
-				System.out.println("KafkaConsumer445");
-				consumer.assign(Arrays.asList(partitionSource));
-				consumer.seekToEnd(Arrays.asList(partitionSource));
-				System.out.println("KafkaConsumer44444");
-				lastOffsetForSource = consumer.position(partitionSource);
-			}
-			System.out.println("KafkaConsumer2");
-			TopicPartition partitionUpdate = new TopicPartition("update", 0);
-			try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props)) {
-				System.out.println("KafkaConsumer443");
-				
-				consumer.subscribe(Arrays.asList("update3"));
-				System.out.println("KafkaConsumer4453");
-				consumer.assign(Arrays.asList(partitionUpdate));
-				consumer.seekToEnd(Arrays.asList(partitionUpdate));
-				System.out.println("KafkaConsumer444443");
-				lastOffsetForUpdate = consumer.position(partitionUpdate);
-			}		     
-			System.out.println("KafkaConsumer3");
-			
-			System.out.println("lastOffsetForSource "+lastOffsetForSource+" lastOffsetForUpdate "+lastOffsetForUpdate);
- 
-			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-
-				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
-				producer.send(record);
-
-				ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName,getSourceGenericRecord(lat, longX));
-				producer.send(record2);
-			}*/
-			
-			System.out.println("KafkaConsumer4");
-
-
-			
 			sourceRecordsList.clear();
 			updateRecordsList.clear(); 
-			
- 
 			long lastOffsetForSource;
 			long lastOffsetForUpdate;
 
-			// create kafka consumer
 			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
-			System.out.println("KafkaConsumer5");
-			//consumer.subscribe(Arrays.asList(sourceName));
 			consumer.assign(Arrays.asList(partitionSource));
 			consumer.seekToEnd(Arrays.asList(partitionSource));
-			lastOffsetForSource = consumer.position(partitionSource);
-			
-			System.out.println("KafkaConsumer66");
+			lastOffsetForSource = consumer.position(partitionSource); 
 			
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
-			//consumer2.subscribe(Arrays.asList("update"));
 			consumer2.assign(Arrays.asList(partitionUpdate));
 			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
-			lastOffsetForUpdate = consumer2.position(partitionUpdate);
-			
-			System.out.println("KafkaConsumer4445");
+			lastOffsetForUpdate = consumer2.position(partitionUpdate); 
 			
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}			
+			} catch (InterruptedException e) {}			
 			
-			System.out.println("KafkaConsumer444345");
-			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
+	 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
 				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
 				producer.send(record);
@@ -258,77 +187,37 @@ public class EnginePerformance extends InnerService {
 			
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
-			
-			System.out.println("KafkaConsumerAAAA");
-			
-			consumer.seek(partitionSource, lastOffsetForSource);
-			boolean isRunning = true;
-			while (isRunning) {
-				ConsumerRecords<Object, Object> records = consumer.poll(10000);
-
-				for (ConsumerRecord<Object, Object> param : records) {
-
-					System.out.println(param.value());
-					GenericRecord record = (GenericRecord)param.value();
+			} catch (InterruptedException e) {}	
 					
-					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
-					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
-					String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
-					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-					String latTmp = coordinate.get("lat").toString(); 
-					String longXTmp = coordinate.get("long").toString();
-
-					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
-						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
-						System.out.println("STOP");
-						isRunning = false;
-						consumer.close();
-						break;
-					}
-
-				}
-			}
+			consumer.seek(partitionSource, lastOffsetForSource);
+			callConsumersWithKafkaConsuemr(consumer,lat,longX);
 			
-			System.out.println("KafkaConsumer6"); 
-
- 
 			consumer2.seek(partitionUpdate, lastOffsetForUpdate);
-			isRunning = true;
-			while (isRunning) {
-				ConsumerRecords<Object, Object> records = consumer2.poll(10000);
-
-
-				for (ConsumerRecord<Object, Object> param : records) {
-
-					GenericRecord record = (GenericRecord)param.value();
-					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
-					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
-					String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
-					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-					String latTmp = coordinate.get("lat").toString(); 
-					String longXTmp = coordinate.get("long").toString();
-
-					if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
-						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
-						isRunning = false;						
-						consumer2.close();
-						break;
-
-					}
-
-				}
-			}
+			callConsumersWithKafkaConsuemr(consumer2,lat,longX);
 			
 			long diffTime = getTimeDifferences(lat, longX);
 			output[0] = "The create took "+diffTime +" millisec";
 			System.out.println(output[0]);
-
 		}
 
+	}
+
+	private Properties getProperties() {
+
+		Properties props = new Properties();
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);
+		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+				StringSerializer.class);
+		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+				io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+				StringDeserializer.class);
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+				io.confluent.kafka.serializers.KafkaAvroDeserializer.class);		
+		props.put("schema.registry.url", schemaRegustryUrl);
+		props.put("group.id", "group1");
+
+		return props;
 	}
 
 	private GenericRecord getCreationGenericRecord() throws IOException, RestClientException {
@@ -381,22 +270,75 @@ public class EnginePerformance extends InnerService {
 	
 	private void handleUpdateMessage() throws IOException, RestClientException {
 
-		ProducerSettings<String, Object> producerSettings = ProducerSettings
-				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
-				.withBootstrapServers(kafkaAddress);
-		
 		String lat = "34.66";
 		String longX = "48.66";
-		
-		sourceTopicProducer(producerSettings,lat,longX);
-		
-		sourceRecordsList.clear();
-		updateRecordsList.clear(); 
-		
-		callConsumers();
+		//Akka Actor
+		if(testing) {
+
+			System.out.println("Update message with Akka Actor");
+			
+			ProducerSettings<String, Object> producerSettings = ProducerSettings
+					.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
+					.withBootstrapServers(kafkaAddress);
+
+			sourceTopicProducer(producerSettings,lat,longX);
+
+			sourceRecordsList.clear();
+			updateRecordsList.clear(); 
+
+			callConsumers(); 
+		}
+
+		//KafkaConsumer
+		else {
+
+			System.out.println("Update message with KafkaConsumer");
+
+			Properties props = getProperties(); 
+
+			TopicPartition partitionSource = new TopicPartition(sourceName, 0);
+			TopicPartition partitionUpdate = new TopicPartition("update", 0);
+
+			sourceRecordsList.clear();
+			updateRecordsList.clear(); 
+			long lastOffsetForSource;
+			long lastOffsetForUpdate;
+
+			KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
+			consumer.assign(Arrays.asList(partitionSource));
+			consumer.seekToEnd(Arrays.asList(partitionSource));
+			lastOffsetForSource = consumer.position(partitionSource); 
+
+			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
+			consumer2.assign(Arrays.asList(partitionUpdate));
+			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
+			lastOffsetForUpdate = consumer2.position(partitionUpdate); 
+
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {}			
+
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
+
+				ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName,getSourceGenericRecord(lat, longX));
+				producer.send(record2);
+			}
+
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {}	
+
+			consumer.seek(partitionSource, lastOffsetForSource);
+			callConsumersWithKafkaConsuemr(consumer,lat,longX);
+
+			consumer2.seek(partitionUpdate, lastOffsetForUpdate);
+			callConsumersWithKafkaConsuemr(consumer2,lat,longX);
+
+		}
 		
 		long diffTime = getTimeDifferences(lat, longX);
 		output[1] = "The update took "+diffTime +" millisec";
+		System.out.println(output[1]); 
 	}
 	
 	private void callConsumers() {		 
@@ -448,6 +390,41 @@ public class EnginePerformance extends InnerService {
 		System.out.println("=====update");
 		Consumer.committableSource(consumerSettings, Subscriptions.topics("update"))
 		.map(result -> result.record()).runForeach(f, materializer);
+	}
+	
+	
+	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) {
+		
+		boolean isRunning = true;
+		while (isRunning) {
+			ConsumerRecords<Object, Object> records = consumer.poll(10000);
+
+			for (ConsumerRecord<Object, Object> param : records) {
+
+				GenericRecord record = (GenericRecord)param.value();
+				
+				GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
+				GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
+				String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
+				GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
+				String latTmp = coordinate.get("lat").toString(); 
+				String longXTmp = coordinate.get("long").toString();
+
+				if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
+					
+					if( param.topic().equals("update")) {
+						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+					}
+					else {
+						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+					}
+					isRunning = false;
+					consumer.close();
+					break;
+				}
+
+			}
+		}
 	}
 	
 	private void sourceTopicProducer(ProducerSettings<String, Object> producerSettings, String lat, String longX) throws IOException, RestClientException {
