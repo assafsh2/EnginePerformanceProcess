@@ -232,7 +232,8 @@ public class EnginePerformance extends InnerService {
 			System.out.println("KafkaConsumer66");
 			
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
-			consumer2.subscribe(Arrays.asList("update"));
+			//consumer2.subscribe(Arrays.asList("update"));
+			consumer2.assign(Arrays.asList(partitionUpdate));
 			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 			lastOffsetForUpdate = consumer2.position(partitionUpdate);
 			
