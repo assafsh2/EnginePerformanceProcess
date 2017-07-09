@@ -231,7 +231,7 @@ public class EnginePerformance extends InnerService {
 			//consumer.seek(partitionSource, lastOffsetForSource);
 			boolean isRunning = true;
 			while (isRunning) {
-				ConsumerRecords<Object, Object> records = consumer.poll(100);
+				ConsumerRecords<Object, Object> records = consumer.poll(10000);
 
 
 				for (ConsumerRecord<Object, Object> param : records) {
