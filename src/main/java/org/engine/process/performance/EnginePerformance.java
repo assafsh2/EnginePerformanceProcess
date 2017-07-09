@@ -235,7 +235,7 @@ public class EnginePerformance extends InnerService {
 
 
 				for (ConsumerRecord<Object, Object> param : records) {
-
+				 	System.out.println("In "+param.value());
 					GenericRecord record = (GenericRecord)param.value();
 
 					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
