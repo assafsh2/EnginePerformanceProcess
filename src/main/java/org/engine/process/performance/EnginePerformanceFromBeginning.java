@@ -57,6 +57,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private String sourceName;   
 	private SchemaRegistryClient schemaRegistry = null;
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
+	private List<Pair<String,Long>> sourceDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 
 	public EnginePerformanceFromBeginning(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
@@ -120,12 +121,15 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private void handleMessage(String lat,String longX) throws IOException, RestClientException {
 		
 		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
+		TopicPartition partitionSource = new TopicPartition(sourceName, 0);
 		TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
+		sourceDataRecordsList.clear(); 
 		long lastOffsetForRawData;
 		long lastOffsetForUpdate;
+		long lastOffsetForSource;
 		
 		Properties props = getProperties(false); 
 		Properties propsWithAvro = getProperties(true); 
@@ -150,6 +154,15 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		System.out.println("BBB3");
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
 		System.out.println("BBB4");
+		
+		KafkaConsumer<Object, Object> consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
+		System.out.println("BBB1");
+		consumer3.assign(Arrays.asList(partitionSource));
+		System.out.println("BBB2");
+		consumer3.seekToEnd(Arrays.asList(partitionSource));
+		System.out.println("BBB3");
+		lastOffsetForSource = consumer2.position(partitionSource); 
+		System.out.println("BBB4");
 
 		try {
 			Thread.sleep(1000);
@@ -171,6 +184,9 @@ public class EnginePerformanceFromBeginning extends InnerService {
 
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
 		callConsumersWithKafkaConsuemr(consumer2,lat,longX); 
+		
+		consumer3.seek(partitionUpdate, lastOffsetForSource);
+		callConsumersWithKafkaConsuemr(consumer3,lat,longX);
 	}
 
 	private String getJsonGenericRecord(String lat,String longX) {
