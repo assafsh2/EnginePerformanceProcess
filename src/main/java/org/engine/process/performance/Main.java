@@ -32,8 +32,8 @@ public class Main {
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
-		//EnginePerformance enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		EnginePerformanceFromBegining enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		EnginePerformance enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		//EnginePerformanceFromBegining enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		ServiceStatus status = enginePerformance.run();
 		System.out.println(status.getMessage());
 		
