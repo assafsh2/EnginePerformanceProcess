@@ -201,7 +201,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
 				StringDeserializer.class);
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-				StringSerializer.class);		
+				StringDeserializer.class);		
 		props.put("schema.registry.url", schemaRegustryUrl);
 		props.put("group.id", "group1");
 
