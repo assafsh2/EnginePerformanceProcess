@@ -3,13 +3,16 @@ package org.engine.process.performance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays; 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random; 
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -29,6 +32,11 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Properties;
 
@@ -52,7 +60,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 	private String schemaRegustryIdentity;
 	private String sourceName;   
 	private SchemaRegistryClient schemaRegistry = null;
-	private List<Pair<GenericRecord,Long>> rawDataRecordsList = new ArrayList<>(); 
+	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 
 	public EnginePerformanceFromBegining(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
@@ -302,7 +310,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 
  
 
-	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) {
+	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) throws JsonParseException, JsonMappingException, IOException {
 
 		boolean isRunning = true;
 		while (isRunning) {
@@ -311,23 +319,37 @@ public class EnginePerformanceFromBegining extends InnerService {
 			for (ConsumerRecord<Object, Object> param : records) {
 				
 				System.out.println("*******"+ param);
+				String latTmp = null;
+				String longXTmp = null;
+				String externalSystemIDTmp = null;
+				
+				if( param.topic().equals("update")) {
+					
+					GenericRecord record = (GenericRecord)param.value();
 
-				GenericRecord record = (GenericRecord)param.value();
-
-				GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
-				GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
-				String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
-				GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-				String latTmp = coordinate.get("lat").toString(); 
-				String longXTmp = coordinate.get("long").toString();
-
+					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
+					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
+					externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
+					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
+					latTmp = coordinate.get("lat").toString(); 
+					longXTmp = coordinate.get("long").toString();				
+					
+				}
+				else {
+					Map<String,String> map = jsonToMap((String)param.value());
+					System.out.println("*******MAP"+ map);
+					latTmp = map.get("lax"); 
+					longXTmp =  map.get("xlong");
+					externalSystemIDTmp = map.get("id"); 
+				}
+				
 				if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
 
 					if( param.topic().equals("update")) {
 						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 					}
 					else {
-						rawDataRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+						rawDataRecordsList.add(new Pair<String,Long>((String)param.value(),param.timestamp()));
 					}
 					isRunning = false;
 					consumer.close();
@@ -345,37 +367,10 @@ public class EnginePerformanceFromBegining extends InnerService {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
-		Predicate<Pair<GenericRecord,Long>> predicateUpdate = record -> {  
 	
-			GenericRecord entityAttributes =  ((GenericRecord) record.first().get("entityAttributes"));	
-			GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.first().get("basicAttributes"));
-			String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.first().get("externalSystemID").toString();
-			GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-			String lat = coordinate.get("lat").toString(); 
-			String longX = coordinate.get("long").toString();
-
-			return externalSystemIDTmp.equals(externalSystemID) && lat.equals(inputLat) &&  longX.equals(inputLongX);		 
-		};
-
-		Predicate<Pair<GenericRecord,Long>> predicateRowData = record -> {  
-			
-			System.out.println(record);
-			/*
-			GenericRecord entityAttributes =  ((GenericRecord) record.first().get("entityAttributes"));	
-			GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.first().get("basicAttributes"));
-			String externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.first().get("externalSystemID").toString();
-			GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-			String lat = coordinate.get("lat").toString(); 
-			String longX = coordinate.get("long").toString();
-*/
-			//return externalSystemIDTmp.equals(externalSystemID) && lat.equals(inputLat) &&  longX.equals(inputLongX);
-			return true;
-		};	
-		
-		Pair<GenericRecord,Long> update = updateRecordsList.stream().filter(predicateUpdate).collect(Collectors.toList()).get(0);
+		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("Consumer from topic update: "+update.toString());
-		Pair<GenericRecord,Long> rowData = rawDataRecordsList.stream().filter(predicateRowData).collect(Collectors.toList()).get(0);
+		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
 
 		return update.second() - rowData.second();	
@@ -442,4 +437,13 @@ public class EnginePerformanceFromBegining extends InnerService {
 		int id = schemaRegistry.getLatestSchemaMetadata(name).getId();
 		return schemaRegistry.getByID(id);
 	}
-}
+
+	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
+		
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { });
+		System.out.println(map);
+		
+		return map;
+	}
+ }
