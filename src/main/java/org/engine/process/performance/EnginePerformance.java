@@ -48,6 +48,16 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
 
+/**
+ * @author assafsh
+ * Jul 2017
+ * 
+ * The class will check the performance of the engine by create messages to topics
+ * sourceName (source1..)
+ * update
+ * get the message timestamp and compare
+ *
+ */
 public class EnginePerformance extends InnerService {
 
 	private String[] output = new String[2];
@@ -55,7 +65,7 @@ public class EnginePerformance extends InnerService {
 	private String kafkaAddress;
 	private String schemaRegustryUrl; 
 	private String schemaRegustryIdentity;
-	private String sourceName;
+	private String sourceName; 
 	private final ActorSystem system = ActorSystem.create();
 	private final ActorMaterializer materializer = ActorMaterializer.create(system);
 	private SchemaRegistryClient schemaRegistry = null;
@@ -68,7 +78,7 @@ public class EnginePerformance extends InnerService {
 		this.kafkaAddress = kafkaAddress;
 		this.schemaRegustryUrl = schemaRegustryUrl;
 		this.schemaRegustryIdentity = schemaRegustryIdentity;
-		this.sourceName = sourceName;
+		this.sourceName = sourceName; 
 	}
 
 	//ONLY FOR TESTING
@@ -126,7 +136,7 @@ public class EnginePerformance extends InnerService {
 		//Akka Actor
 		if(testing) {
 			System.out.println("Create message with Akka Actor");
-			
+
 			ProducerSettings<String, Object> producerSettings = ProducerSettings
 					.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
 					.withBootstrapServers(kafkaAddress);
@@ -149,7 +159,7 @@ public class EnginePerformance extends InnerService {
 		else {
 
 			System.out.println("Create message with KafkaConsumer");
-			
+
 			Properties props = getProperties();
 
 			String lat = "44.9";
@@ -166,37 +176,47 @@ public class EnginePerformance extends InnerService {
 			consumer.assign(Arrays.asList(partitionSource));
 			consumer.seekToEnd(Arrays.asList(partitionSource));
 			lastOffsetForSource = consumer.position(partitionSource); 
+
+			System.out.println("Create message with KafkaConsumer2 "+lastOffsetForSource);
 			
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 			consumer2.assign(Arrays.asList(partitionUpdate));
 			consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 			lastOffsetForUpdate = consumer2.position(partitionUpdate); 
 			
+			System.out.println("Create message with KafkaConsumer3 "+lastOffsetForUpdate);
+
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {}			
-			
-	 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
+
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
 				ProducerRecord<Object, Object> record = new ProducerRecord<>("creation",getCreationGenericRecord());
 				producer.send(record);
 
 				ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName,getSourceGenericRecord(lat, longX));
 				producer.send(record2);
+
+
 			}
-			
+
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {}	
-					
+
+			System.out.println("Create message with KafkaConsumer5 "+lastOffsetForUpdate);
 			consumer.seek(partitionSource, lastOffsetForSource);
 			callConsumersWithKafkaConsuemr(consumer,lat,longX);
-			
+
+			System.out.println("Create message with KafkaConsumer6 "+lastOffsetForUpdate);
 			consumer2.seek(partitionUpdate, lastOffsetForUpdate);
 			callConsumersWithKafkaConsuemr(consumer2,lat,longX);
+
+			System.out.println("Create message with KafkaConsumer7");
 			
 			long diffTime = getTimeDifferences(lat, longX);
-			output[0] = "The create took "+diffTime +" millisec";
+			output[0] = "The create action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec";
 			System.out.println(output[0]);
 		}
 
@@ -308,6 +328,8 @@ public class EnginePerformance extends InnerService {
 			consumer.assign(Arrays.asList(partitionSource));
 			consumer.seekToEnd(Arrays.asList(partitionSource));
 			lastOffsetForSource = consumer.position(partitionSource); 
+			
+			
 
 			KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 			consumer2.assign(Arrays.asList(partitionUpdate));
@@ -337,7 +359,7 @@ public class EnginePerformance extends InnerService {
 		}
 		
 		long diffTime = getTimeDifferences(lat, longX);
-		output[1] = "The update took "+diffTime +" millisec";
+		output[1] = "The update action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec";
 		System.out.println(output[1]); 
 	}
 	
