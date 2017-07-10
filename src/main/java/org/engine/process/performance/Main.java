@@ -21,7 +21,7 @@ public class Main {
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");		
 		String secToDelay = System.getenv("SEC_TO_DELAY"); 
-		String startFromBegining = System.getenv("START_FROM_BEGINING"); 
+		String startFromBeginning = System.getenv("START_FROM_BEGINNING"); 
 				 
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
 		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
@@ -30,14 +30,14 @@ public class Main {
 		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
-		System.out.println("START_FROM_BEGINING::::::::" + startFromBegining); 
+		System.out.println("START_FROM_BEGINING::::::::" + startFromBeginning); 
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
 		InnerService service;
 		
-		if(startFromBegining.equalsIgnoreCase("true")) {
-			service = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		if(startFromBeginning.equalsIgnoreCase("true")) {
+			service = new EnginePerformanceFromBeginning(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		}
 		else {
 			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
