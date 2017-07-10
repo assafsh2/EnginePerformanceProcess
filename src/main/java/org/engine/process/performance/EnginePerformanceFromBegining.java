@@ -339,14 +339,14 @@ public class EnginePerformanceFromBegining extends InnerService {
 				}
 				else {
 					Map<String,String> map = jsonToMap((String)param.value());
-					System.out.println("*******MAP"+ map);
-					latTmp = map.get("lax"); 
+					//System.out.println("*******MAP"+ map);
+					latTmp = map.get("lat"); 
 					longXTmp =  map.get("xlong");
 					externalSystemIDTmp = map.get("id"); 
 				}
 				
 				if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
-
+					
 					if( param.topic().equals("update")) {
 						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 					}
