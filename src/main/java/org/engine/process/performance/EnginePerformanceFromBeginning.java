@@ -2,21 +2,17 @@ package org.engine.process.performance;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays; 
-import java.util.HashMap;
+import java.util.Arrays;  
 import java.util.List;
 import java.util.Map;
-import java.util.Random; 
-import java.util.function.Predicate;
+import java.util.Random;  
 import java.util.stream.Collectors;
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
+import org.apache.avro.Schema; 
+import org.apache.avro.generic.GenericRecord; 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -102,16 +98,27 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	public ServiceStatus execute() throws IOException, RestClientException {
 		randomExternalSystemID();
 		System.out.println("After random "+externalSystemID); 
-		handleCreateMessage();
-		//handleUpdateMessage();		
-
+		
+		System.out.println("Create message with KafkaConsumer");
+		handleMessage("44.9","95.8");
+		
+		long diffTime = getTimeDifferences("44.9", "95.8");
+		output[0] = "The create action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
+		System.out.println(output[0]);
+		
+		
+		System.out.println("Update message with KafkaConsumer");
+		handleMessage("34.66","48.66");
+		
+		diffTime = getTimeDifferences("34.66","48.66");
+		output[1] = "The update action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
+		System.out.println(output[1]); 
+		
 		return ServiceStatus.SUCCESS;
 	}
 
-	private void handleCreateMessage() throws IOException, RestClientException {
-
-		String lat = "44.9";
-		String longX = "95.8";
+	private void handleMessage(String lat,String longX) throws IOException, RestClientException {
+		
 		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
 		TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
@@ -163,11 +170,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		callConsumersWithKafkaConsuemr(consumer,lat,longX);
 
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
-		callConsumersWithKafkaConsuemr(consumer2,lat,longX);
-
-		long diffTime = getTimeDifferences(lat, longX);
-		output[0] = "The create action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
-		System.out.println(output[0]); 
+		callConsumersWithKafkaConsuemr(consumer2,lat,longX); 
 	}
 
 	private String getJsonGenericRecord(String lat,String longX) {
@@ -225,101 +228,6 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		return props;
 	}
 
-
-	private GenericRecord getSourceGenericRecord(String lat, String longX) throws IOException, RestClientException {
-
-		Schema basicAttributesSchema = getSchema("basicEntityAttributes");
-		Schema coordinateSchema = basicAttributesSchema.getField("coordinate").schema();
-
-		GenericRecord coordinate = new GenericRecordBuilder(coordinateSchema)
-		.set("lat", Double.parseDouble(lat))
-		.set("long",Double.parseDouble(longX))
-		.build();
-
-		GenericRecord basicAttributes = new GenericRecordBuilder(basicAttributesSchema)
-		.set("coordinate", coordinate)
-		.set("isNotTracked", false)
-		.set("entityOffset", 50l)
-		.set("sourceName",sourceName)
-		.build();		 
-
-		Schema dataSchema = getSchema("generalEntityAttributes");
-		Schema nationalitySchema = dataSchema.getField("nationality").schema();
-		Schema categorySchema = dataSchema.getField("category").schema();
-		GenericRecord dataRecord = new GenericRecordBuilder(dataSchema)
-		.set("basicAttributes", basicAttributes)
-		.set("speed", 4.7)
-		.set("elevation", 7.8)
-		.set("course", 8.3)
-		.set("nationality", new GenericData.EnumSymbol(nationalitySchema, "USA"))
-		.set("category", new GenericData.EnumSymbol(categorySchema, "boat"))
-		.set("pictureURL", "huh?")
-		.set("height", 6.1)
-		.set("nickname", "rerere")
-		.set("externalSystemID", externalSystemID)
-		.build();
-
-
-		return dataRecord;
-	}
-
-	private void handleUpdateMessage() throws IOException, RestClientException {
-
-		String lat = "34.66";
-		String longX = "48.66";
-
-
-		System.out.println("Update message with KafkaConsumer");
-
-		Properties props = getProperties(false); 
-		Properties propsWithAvro = getProperties(true); 
-
-		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		TopicPartition partitionUpdate = new TopicPartition("update", 0);
-
-		rawDataRecordsList.clear();
-		updateRecordsList.clear(); 
-		long lastOffsetForRawData;
-		long lastOffsetForUpdate;
-
-		KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
-		consumer.assign(Arrays.asList(partitionRawData));
-		consumer.seekToEnd(Arrays.asList(partitionRawData));
-		lastOffsetForRawData = consumer.position(partitionRawData); 
-
-		KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
-		consumer2.assign(Arrays.asList(partitionUpdate));
-		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
-		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {}			
-
-		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-
-			ProducerRecord<Object, Object> record2 = new ProducerRecord<>(sourceName+"-raw-data",getSourceGenericRecord(lat, longX));
-			producer.send(record2);
-		}
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {}	
-
-		consumer.seek(partitionRawData, lastOffsetForRawData);
-		callConsumersWithKafkaConsuemr(consumer,lat,longX);
-
-		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
-		callConsumersWithKafkaConsuemr(consumer2,lat,longX);
-
-
-		long diffTime = getTimeDifferences(lat, longX);
-		output[1] = "The update action between topics  <"+sourceName+"-raw-data> and <update> took "+diffTime +" millisec";
-		System.out.println(output[1]); 
-	}
-
- 
-
 	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) throws JsonParseException, JsonMappingException, IOException {
 
 		boolean isRunning = true;
@@ -328,7 +236,6 @@ public class EnginePerformanceFromBeginning extends InnerService {
 
 			for (ConsumerRecord<Object, Object> param : records) {
 				
-				//System.out.println("*******"+ param);
 				String latTmp = null;
 				String longXTmp = null;
 				String externalSystemIDTmp = null;
@@ -346,8 +253,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 					
 				}
 				else {
-					Map<String,String> map = jsonToMap((String)param.value());
-					System.out.println("*******MAP"+ map);
+					Map<String,String> map = jsonToMap((String)param.value()); 
 					latTmp = map.get("lat"); 
 					longXTmp =  map.get("xlong");
 					externalSystemIDTmp = map.get("id"); 
@@ -438,14 +344,6 @@ public class EnginePerformanceFromBeginning extends InnerService {
 						+ "]}"));
 
 
-	}
-
-	private Schema getSchema(String name) throws IOException, RestClientException {
-
-		name = "org.sourcestream.entities."+name;
-
-		int id = schemaRegistry.getLatestSchemaMetadata(name).getId();
-		return schemaRegistry.getByID(id);
 	}
 
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
