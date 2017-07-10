@@ -32,6 +32,17 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
 
+/**
+ * @author assafsh
+ * Jul 2017
+ * 
+ * The class will check the performance of the engine by create messages to topics
+ * sourceName-row-data
+ * update
+ * get the message timestamp and compare
+ *
+ */
+
 public class EnginePerformanceFromBegining extends InnerService {
 
 	private String[] output = new String[2];
@@ -100,18 +111,32 @@ public class EnginePerformanceFromBegining extends InnerService {
 
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
-		long lastOffsetForSource;
+		long lastOffsetForRawData;
 		long lastOffsetForUpdate;
-
+		
+		
+		System.out.println("AAAA");
+		System.out.println(props);
+		
+		
 		KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
+		System.out.println("AAAA1");
 		consumer.assign(Arrays.asList(partitionRawData));
+		System.out.println("AAAA2");
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
-		lastOffsetForSource = consumer.position(partitionRawData); 
+		System.out.println("AAAA2");
+		lastOffsetForRawData = consumer.position(partitionRawData); 
+		
+		System.out.println("BBBB");
 
 		KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
+		System.out.println("BBB1");
 		consumer2.assign(Arrays.asList(partitionUpdate));
+		System.out.println("BBB2");
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
+		System.out.println("BBB3");
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
+		System.out.println("BBB4");
 
 		try {
 			Thread.sleep(1000);
@@ -128,7 +153,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {}	
 
-		consumer.seek(partitionRawData, lastOffsetForSource);
+		consumer.seek(partitionRawData, lastOffsetForRawData);
 		callConsumersWithKafkaConsuemr(consumer,lat,longX);
 
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
@@ -236,13 +261,13 @@ public class EnginePerformanceFromBegining extends InnerService {
 
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
-		long lastOffsetForSource;
+		long lastOffsetForRawData;
 		long lastOffsetForUpdate;
 
 		KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
 		consumer.assign(Arrays.asList(partitionRawData));
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
-		lastOffsetForSource = consumer.position(partitionRawData); 
+		lastOffsetForRawData = consumer.position(partitionRawData); 
 
 		KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(props);
 		consumer2.assign(Arrays.asList(partitionUpdate));
@@ -263,7 +288,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {}	
 
-		consumer.seek(partitionRawData, lastOffsetForSource);
+		consumer.seek(partitionRawData, lastOffsetForRawData);
 		callConsumersWithKafkaConsuemr(consumer,lat,longX);
 
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
@@ -271,7 +296,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 
 
 		long diffTime = getTimeDifferences(lat, longX);
-		output[1] = "The update action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
+		output[1] = "The update action between topics  <"+sourceName+"-raw-data> and <update> took "+diffTime +" millisec";
 		System.out.println(output[1]); 
 	}
 
