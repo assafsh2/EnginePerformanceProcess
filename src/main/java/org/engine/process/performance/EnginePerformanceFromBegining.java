@@ -192,7 +192,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 		+"\"category\":\"boat\","
 		+"\"speed\":\"444\", "
 		+"\"course\":\"5.55\", "
-		+"\"elevation\":\"dd\"," 
+		+"\"elevation\":\"0.0\"," 
 		+"\"nationality\":\"USA\"," 
 		+"\"picture_url\":\"URL\", "
 		+"\"height\":\"44\","
