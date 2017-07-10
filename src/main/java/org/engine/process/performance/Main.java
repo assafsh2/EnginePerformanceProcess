@@ -15,24 +15,25 @@ public class Main {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		 
 		String kafkaAddress = System.getenv("KAFKA_ADDRESS");
-		String schemaRegustryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
-		String schemaRegustryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
+		String schemaRegistryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
+		String schemaRegistryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
 		String sourceName = System.getenv("SOURCE_NAME");
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");		
-		String secToDelay = System.getenv("SEC_TO_DELAY");
-				
+		String secToDelay = System.getenv("SEC_TO_DELAY"); 
+				 
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
-		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegustryUrl); 
-		System.out.println("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegustryIdentity);
+		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
+		System.out.println("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
 		System.out.println("SOURCE_NAME::::::::" + sourceName);
 		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
-		System.out.println("SEC_TO_DELAY::::::::" + secToDelay);
+		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
-		EnginePerformance enginePerformance = new EnginePerformance(kafkaAddress,schemaRegustryUrl,schemaRegustryIdentity,sourceName);
+		//EnginePerformance enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		EnginePerformanceFromBegining enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		ServiceStatus status = enginePerformance.run();
 		System.out.println(status.getMessage());
 		
@@ -56,7 +57,7 @@ public class Main {
 		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
 		{
 			fw.write(output[0]+"\n");
-			fw.write(output[1]);
+			fw.write(output[1]+"\n");
 		}
 	}
 
