@@ -21,6 +21,7 @@ public class Main {
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");		
 		String secToDelay = System.getenv("SEC_TO_DELAY"); 
+		String startFromBegining = System.getenv("START_FROM_BEGINING"); 
 				 
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
 		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
@@ -29,12 +30,20 @@ public class Main {
 		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
+		System.out.println("START_FROM_BEGINING::::::::" + startFromBegining); 
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
-		EnginePerformance enginePerformance = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		//EnginePerformanceFromBegining enginePerformance = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		ServiceStatus status = enginePerformance.run();
+		InnerService service;
+		
+		if(startFromBegining.equalsIgnoreCase("true")) {
+			service = new EnginePerformanceFromBegining(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		}
+		else {
+			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		}
+ 
+		ServiceStatus status = service.run();
 		System.out.println(status.getMessage());
 		
 		if(status != ServiceStatus.SUCCESS)
@@ -42,12 +51,12 @@ public class Main {
 		
 		if(printToFile.equalsIgnoreCase("true")) {
 			
-			printToFile(enginePerformance.getOutput(),fileLocation);
+			printToFile(service.getOutput(),fileLocation);
 			
 		}
 		else {
-			System.out.println(enginePerformance.getOutput()[0]);
-			System.out.println(enginePerformance.getOutput()[1]);
+			System.out.println(service.getOutput()[0]);
+			System.out.println(service.getOutput()[1]);
 		}
 	}
 	
