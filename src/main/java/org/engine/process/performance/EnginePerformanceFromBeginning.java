@@ -103,7 +103,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		System.out.println("Create message with KafkaConsumer");
 		handleMessage("44.9","95.8");
 		
-		long diffTime = getTimeDifferences("44.9", "95.8");
+		Pair<Long,Long> diffTime = getTimeDifferences("44.9", "95.8");
 		output[0] = "The create action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
 		System.out.println(output[0]);
 		
@@ -256,7 +256,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 				String longXTmp = null;
 				String externalSystemIDTmp = null;
 				
-				if( param.topic().equals("update")) {
+				if( param.topic().equals("update") ||  param.topic().equals(sourceName)) {
 					
 					GenericRecord record = (GenericRecord)param.value();
 
@@ -280,6 +280,9 @@ public class EnginePerformanceFromBeginning extends InnerService {
 					if( param.topic().equals("update")) {
 						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 					}
+					else if( param.topic().equals(sourceName)) {
+						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
+					}
 					else {
 						rawDataRecordsList.add(new Pair<String,Long>((String)param.value(),param.timestamp()));
 					}
@@ -292,7 +295,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		}
 	}
 
-	private long getTimeDifferences(String inputLat,String inputLongX) {
+	private Pair<Long,Long> getTimeDifferences(String inputLat,String inputLongX) {
 
 		try {
 			Thread.sleep(10000);
@@ -302,10 +305,12 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("Consumer from topic update: "+update.toString());
+		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
+		System.out.println("Consumer from topic source: "+source.toString());
 		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
 
-		return update.second() - rowData.second();	
+		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
 	}
 
 	private void randomExternalSystemID() {
