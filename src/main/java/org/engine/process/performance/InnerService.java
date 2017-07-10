@@ -5,6 +5,7 @@ public abstract class InnerService {
 	abstract protected void preExecute() throws Exception;
 	abstract protected void postExecute() throws Exception;
 	abstract protected ServiceStatus execute() throws Exception;
+	abstract protected String[] getOutput();
 
 	public ServiceStatus run() {
 
