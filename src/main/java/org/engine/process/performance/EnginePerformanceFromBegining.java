@@ -183,6 +183,8 @@ public class EnginePerformanceFromBegining extends InnerService {
 		 * 
 		 */
 
+		String timestamp = Long.toString(System.currentTimeMillis());
+		
 		return   "{\"id\":\""+externalSystemID+"\"," 
 		+"\"lat\":\""+lat+"\"," 
 		+"\"xlong\":\""+longX+"\"," 
@@ -195,7 +197,7 @@ public class EnginePerformanceFromBegining extends InnerService {
 		+"\"picture_url\":\"URL\", "
 		+"\"height\":\"44\","
 		+"\"nickname\":\"mick\"," 
-		+" \"timestamp\":\"dd\"  }";
+		+" \"timestamp\":\""+timestamp+"\"  }";
 	}
 
 	private Properties getProperties() {
