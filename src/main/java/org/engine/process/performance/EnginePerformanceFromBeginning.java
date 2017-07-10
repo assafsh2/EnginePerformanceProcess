@@ -190,7 +190,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		+"\"category\":\"boat\","
 		+"\"speed\":\"444\", "
 		+"\"course\":\"5.55\", "
-		+"\"elevation\":\"dd\"," 
+		+"\"elevation\":\"7.8\"," 
 		+"\"nationality\":\"USA\"," 
 		+"\"picture_url\":\"URL\", "
 		+"\"height\":\"44\","
@@ -328,7 +328,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 
 			for (ConsumerRecord<Object, Object> param : records) {
 				
-				System.out.println("*******"+ param);
+				//System.out.println("*******"+ param);
 				String latTmp = null;
 				String longXTmp = null;
 				String externalSystemIDTmp = null;
