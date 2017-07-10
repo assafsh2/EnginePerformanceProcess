@@ -172,11 +172,11 @@ public class EnginePerformanceFromBegining extends InnerService {
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
 				StringSerializer.class);
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-				io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+				StringSerializer.class);
 		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
 				StringDeserializer.class);
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-				io.confluent.kafka.serializers.KafkaAvroDeserializer.class);		
+				StringSerializer.class);		
 		props.put("schema.registry.url", schemaRegustryUrl);
 		props.put("group.id", "group1");
 
