@@ -152,7 +152,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		KafkaConsumer<Object, Object> consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
 		consumer3.assign(Arrays.asList(partitionSource));
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
-		lastOffsetForSource = consumer2.position(partitionSource); 
+		lastOffsetForSource = consumer3.position(partitionSource); 
 		
 		output.append("The current offset before produce the message are ").append(endl);
 		output.append(sourceName+"-raw-data : "+lastOffsetForRawData).append(endl);
