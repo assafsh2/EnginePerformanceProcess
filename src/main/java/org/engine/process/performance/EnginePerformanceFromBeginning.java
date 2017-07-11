@@ -49,15 +49,16 @@ import java.util.Properties;
 
 public class EnginePerformanceFromBeginning extends InnerService {
 
-	private String[] output = new String[2];
+	private StringBuffer output = new StringBuffer();
 	private String externalSystemID;	
 	private String kafkaAddress;
 	private String schemaRegustryUrl; 
 	private String schemaRegustryIdentity;
 	private String sourceName;   
+	private String endl = "\n";
 	private SchemaRegistryClient schemaRegistry = null;
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
-	private List<Pair<String,Long>> sourceDataRecordsList = new ArrayList<>(); 
+	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 
 	public EnginePerformanceFromBeginning(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
@@ -68,8 +69,9 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		this.sourceName = sourceName; 
 	}
 
-	public String[] getOutput() {
-		return output;
+	@Override
+	public String getOutput() {
+		return output.toString();
 	}
 
 	@Override
@@ -101,19 +103,21 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		System.out.println("After random "+externalSystemID); 
 		
 		System.out.println("Create message with KafkaConsumer");
+		output.append("Create a new entity").append(endl);
+		output.append("===================").append(endl);
 		handleMessage("44.9","95.8");
-		
 		Pair<Long,Long> diffTime = getTimeDifferences("44.9", "95.8");
-		output[0] = "The create action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
-		System.out.println(output[0]);
+		output.append("The create action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
+		output.append("The create action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl).append(endl);
 		
 		
 		System.out.println("Update message with KafkaConsumer");
-		handleMessage("34.66","48.66");
-		
+		output.append("Update the entity").append(endl);
+		output.append("=================").append(endl);
+		handleMessage("34.66","48.66");		
 		diffTime = getTimeDifferences("34.66","48.66");
-		output[1] = "The update action between topics  <"+sourceName+"-row-data> and <update> took "+diffTime +" millisec";
-		System.out.println(output[1]); 
+		output.append("The update action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
+		output.append("The update action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl);
 		
 		return ServiceStatus.SUCCESS;
 	}
@@ -126,43 +130,35 @@ public class EnginePerformanceFromBeginning extends InnerService {
 
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
-		sourceDataRecordsList.clear(); 
+		sourceRecordsList.clear(); 
+		
 		long lastOffsetForRawData;
 		long lastOffsetForUpdate;
 		long lastOffsetForSource;
 		
 		Properties props = getProperties(false); 
 		Properties propsWithAvro = getProperties(true); 
-		
-		System.out.println("AAAA"); 		
-		
+				
 		KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
-		System.out.println("AAAA1");
 		consumer.assign(Arrays.asList(partitionRawData));
-		System.out.println("AAAA2");
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
-		System.out.println("AAAA2");
 		lastOffsetForRawData = consumer.position(partitionRawData); 
-		
-		System.out.println("BBBB");
 
 		KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
-		System.out.println("BBB1");
 		consumer2.assign(Arrays.asList(partitionUpdate));
-		System.out.println("BBB2");
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
-		System.out.println("BBB3");
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
-		System.out.println("BBB4");
 		
 		KafkaConsumer<Object, Object> consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
-		System.out.println("BBB1");
 		consumer3.assign(Arrays.asList(partitionSource));
-		System.out.println("BBB2");
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
-		System.out.println("BBB3");
 		lastOffsetForSource = consumer2.position(partitionSource); 
-		System.out.println("BBB4");
+		
+		output.append("The current offset before produce the message are ").append(endl);
+		output.append(sourceName+"-raw-data : "+lastOffsetForRawData).append(endl);
+		output.append(sourceName+" :"+lastOffsetForSource).append(endl);
+		output.append("update :"+lastOffsetForUpdate).append(endl);
+		
 
 		try {
 			Thread.sleep(1000);
@@ -304,11 +300,11 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		}
 	
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic update: "+update.toString());
+		System.out.println("====Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic source: "+source.toString());
+		System.out.println("====Consumer from topic source: "+source.toString());
 		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
+		System.out.println("====Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
 
 		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
 	}
