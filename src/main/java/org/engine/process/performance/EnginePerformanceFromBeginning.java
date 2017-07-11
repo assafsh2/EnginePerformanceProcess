@@ -366,7 +366,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { })
+		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { });
 		
 		return map;
 	}
