@@ -30,7 +30,7 @@ public class Main {
 		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
-		System.out.println("START_FROM_BEGINING::::::::" + startFromBeginning); 
+		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
@@ -54,19 +54,17 @@ public class Main {
 			printToFile(service.getOutput(),fileLocation);
 			
 		}
-		else {
-			System.out.println(service.getOutput()[0]);
-			System.out.println(service.getOutput()[1]);
+		else { 
+				System.out.println(service.getOutput());	 
 		}
 	}
 	
-	public static void printToFile(String[] output, String fileLocation) throws IOException {
+	public static void printToFile(String output, String fileLocation) throws IOException {
  
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
 		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
 		{
-			fw.write(output[0]+"\n");
-			fw.write(output[1]+"\n");
+			fw.write(output+"\n");	 
 		}
 	}
 
