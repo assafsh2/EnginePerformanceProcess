@@ -181,7 +181,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
 		callConsumersWithKafkaConsuemr(consumer2,lat,longX); 
 		
-		consumer3.seek(partitionUpdate, lastOffsetForSource);
+		consumer3.seek(partitionSource, lastOffsetForSource);
 		callConsumersWithKafkaConsuemr(consumer3,lat,longX);
 	}
 
@@ -366,8 +366,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { });
-		System.out.println(map);
+		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { })
 		
 		return map;
 	}
