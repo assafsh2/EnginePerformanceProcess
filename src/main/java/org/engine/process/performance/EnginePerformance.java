@@ -60,12 +60,13 @@ import java.util.Properties;
  */
 public class EnginePerformance extends InnerService {
 
-	private String[] output = new String[2];
+	private StringBuffer output = new StringBuffer();
 	private String externalSystemID;	
 	private String kafkaAddress;
 	private String schemaRegustryUrl; 
 	private String schemaRegustryIdentity;
 	private String sourceName; 
+	private String endl = "\n";
 	private final ActorSystem system = ActorSystem.create();
 	private final ActorMaterializer materializer = ActorMaterializer.create(system);
 	private SchemaRegistryClient schemaRegistry = null;
@@ -90,9 +91,10 @@ public class EnginePerformance extends InnerService {
 		testing = true;
 		this.kafkaAddress = kafkaAddress;
 	}
-
-	public String[] getOutput() {
-		return output;
+	
+	@Override
+	public String getOutput() {
+		return output.toString();
 	}
 
 	@Override
@@ -153,7 +155,7 @@ public class EnginePerformance extends InnerService {
 
 
 			long diffTime = getTimeDifferences(lat, longX);
-			output[0] = "The create took "+diffTime +" millisec";
+			output.append("The create took "+diffTime +" millisec").append(endl);
 		}
 		//KafkaConsumer
 		else {
@@ -216,8 +218,7 @@ public class EnginePerformance extends InnerService {
 			System.out.println("Create message with KafkaConsumer7");
 			
 			long diffTime = getTimeDifferences(lat, longX);
-			output[0] = "The create action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec";
-			System.out.println(output[0]);
+			output.append("The create action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec").append(endl);
 		}
 
 	}
@@ -359,8 +360,7 @@ public class EnginePerformance extends InnerService {
 		}
 		
 		long diffTime = getTimeDifferences(lat, longX);
-		output[1] = "The update action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec";
-		System.out.println(output[1]); 
+		output.append("The update action between topics  <"+sourceName+"> and <update> took "+diffTime +" millisec").append(endl);
 	}
 	
 	private void callConsumers() {		 
