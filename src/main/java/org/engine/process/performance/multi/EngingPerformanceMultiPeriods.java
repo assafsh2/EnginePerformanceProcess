@@ -26,12 +26,10 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		this.sourceName = sourceName;
 		this.schemaRegustryUrl = schemaRegistryUrl;
 		System.out.println("NUM_OF_PERIODS::::::::" + System.getenv("NUM_OF_PERIODS")); 
-		System.out.println("AANUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
-	System.out.println("GGG"); 
+		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
+		
 		num_of_periods = Integer.parseInt(System.getenv("NUM_OF_PERIODS"));
-		System.out.println("AAA"); 
-		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES"));
-		System.out.println("BBB"); 
+		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
 	}
 
 	@Override
@@ -55,7 +53,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 
 	@Override
 	protected ServiceStatus execute() throws Exception {
-		System.out.println("CCC"); 
+
 		double lat = 4.3;
 		double longX = 6.4;
 
@@ -75,20 +73,21 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 
 				HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
 										sourceName,externalSystemID,latStr,longXStr);					
-				System.out.println("Before  handleMessage " + j);
+				
 				handlePerformanceMessages.handleMessage(); 
 				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
-				System.out.println(singlePeriod.getMessageDataList());
+
 				lat = lat * 1.3;
 				longX = longX * 2.3;
 				
-				Thread.sleep(500);
+				Thread.sleep(5000);
 
 			}
 			
 			periodsList.add(singlePeriod); 		
 		}
 		
+		System.out.println("END execute  " + periodsList ); 
 		return ServiceStatus.SUCCESS;
 
 	}
