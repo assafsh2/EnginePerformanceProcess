@@ -26,7 +26,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		this.sourceName = sourceName;
 		System.out.println("NUM_OF_PERIODS::::::::" + System.getenv("NUM_OF_PERIODS")); 
 		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
-	
+	System.out.println("GGG"); 
 		num_of_periods = Integer.parseInt(System.getenv("NUM_OF_PERIODS"));
 		System.out.println("AAA"); 
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES"));
