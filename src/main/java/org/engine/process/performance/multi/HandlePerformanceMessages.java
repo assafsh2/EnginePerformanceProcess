@@ -134,10 +134,8 @@ public class HandlePerformanceMessages {
 		output.append("update :"+lastOffsetForUpdate).append(endl);
  
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-			System.out.println("handleMessage 10 ");
 			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(lat,longX));
 			producer.send(record); 
-			System.out.println("handleMessage 11 ");
 
 		}
 	}
