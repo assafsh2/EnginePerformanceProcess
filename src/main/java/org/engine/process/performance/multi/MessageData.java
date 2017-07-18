@@ -16,6 +16,8 @@ public class MessageData {
 	private long lastOffsetForRawData;
 	private long lastOffsetForUpdate;
 	private long lastOffsetForSource;
+	private int numOfCycle;
+	private int numOfUpdate;
 
 	public MessageData(Date startTime,String externalSystemID, String lat, String longX,String sourceName, HandlePerformanceMessages handlePerformanceMessages) {
 	 
@@ -49,6 +51,8 @@ public class MessageData {
 		StringBuffer stringBuffer = new StringBuffer();
 		stringBuffer.append("******************************************").append(endl);
 		stringBuffer.append("StartTime: "+startTime).append(endl);
+		stringBuffer.append("Cycle NO: "+numOfCycle).append(endl);
+		stringBuffer.append("Update NO: "+numOfUpdate).append(endl);
 		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
@@ -93,6 +97,22 @@ public class MessageData {
 
 	public void setLastOffsetForSource(long lastOffsetForSource) {
 		this.lastOffsetForSource = lastOffsetForSource;
+	}
+
+	public int getNumOfCycle() {
+		return numOfCycle;
+	}
+
+	public void setNumOfCycle(int numOfCycle) {
+		this.numOfCycle = numOfCycle;
+	}
+
+	public int getNumOfUpdate() {
+		return numOfUpdate;
+	}
+
+	public void setNumOfUpdate(int numOfUpdate) {
+		this.numOfUpdate = numOfUpdate;
 	}
 	
 	
