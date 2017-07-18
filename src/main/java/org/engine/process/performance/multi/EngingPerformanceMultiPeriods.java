@@ -41,18 +41,24 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 
 	@Override
 	protected void postExecute() throws Exception {
-
+		
+		System.out.println("===postExecute");
+		int i = 0;
 		for(SingleCycle period : cyclesList ) {
-			
+			System.out.println("Cycle "+i);
+			int j = 0;
 			for( MessageData messageData : period.getMessageDataList()) {
 				
+				System.out.println("Update "+j);				
 				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
 				messageData.setRowDataToSourceDiffTime(diffTime.second());
 				messageData.setSourceToUpdateDiffTime(diffTime.first());
 				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
 				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
 				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
+				j++;
 			} 
+			i++;
 		}
 	}
 
