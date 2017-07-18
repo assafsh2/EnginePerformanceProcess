@@ -57,6 +57,30 @@ public class HandlePerformanceMessages {
 	private long lastOffsetForRawData;
 	private long lastOffsetForUpdate;
 	private long lastOffsetForSource;
+	public long getLastOffsetForRawData() {
+		return lastOffsetForRawData;
+	}
+
+	public void setLastOffsetForRawData(long lastOffsetForRawData) {
+		this.lastOffsetForRawData = lastOffsetForRawData;
+	}
+
+	public long getLastOffsetForUpdate() {
+		return lastOffsetForUpdate;
+	}
+
+	public void setLastOffsetForUpdate(long lastOffsetForUpdate) {
+		this.lastOffsetForUpdate = lastOffsetForUpdate;
+	}
+
+	public long getLastOffsetForSource() {
+		return lastOffsetForSource;
+	}
+
+	public void setLastOffsetForSource(long lastOffsetForSource) {
+		this.lastOffsetForSource = lastOffsetForSource;
+	}
+
 	private KafkaConsumer<Object, Object> consumer;
 	private KafkaConsumer<Object, Object> consumer2;
 	private KafkaConsumer<Object, Object> consumer3;
@@ -85,38 +109,25 @@ public class HandlePerformanceMessages {
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
 		sourceRecordsList.clear(); 
-		
-		System.out.println("handleMessage 1 "); 
-		
+			
 		Properties props = getProperties(false); 
-		System.out.println("handleMessage 2 "); 
 		Properties propsWithAvro = getProperties(true); 
-		System.out.println("handleMessage 3 "); 
 				
 		consumer = new KafkaConsumer<Object, Object>(props);
-		System.out.println("handleMessage 4 "); 
 		consumer.assign(Arrays.asList(partitionRawData));
-		System.out.println("handleMessage 5 ");
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
-		System.out.println("handleMessage 6 ");
 		lastOffsetForRawData = consumer.position(partitionRawData); 
 
 		consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
-		System.out.println("handleMessage 7 ");
 		consumer2.assign(Arrays.asList(partitionUpdate));
-		System.out.println("handleMessage 8 ");
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
-		System.out.println("handleMessage 89 ");
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
-		System.out.println("handleMessage 894 ");
+		
 		consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
-		System.out.println("handleMessage 8944 "+partitionSource);
 		consumer3.assign(Arrays.asList(partitionSource));
-		System.out.println("handleMessage 894433 ");
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
-		System.out.println("handleMessage 894433ddd ");
 		lastOffsetForSource = consumer3.position(partitionSource); 
-		System.out.println("handleMessage 9 ");
+
 		output.append("The current offset before produce the message are ").append(endl);
 		output.append(sourceName+"-raw-data : "+lastOffsetForRawData).append(endl);
 		output.append(sourceName+" :"+lastOffsetForSource).append(endl);
@@ -248,7 +259,7 @@ public class HandlePerformanceMessages {
 		consumer3.seek(partitionSource, lastOffsetForSource);
 		callConsumersWithKafkaConsuemr(consumer3);
 		
-	
+		System.out.println("\n\n\n");
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("====Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
@@ -265,5 +276,6 @@ public class HandlePerformanceMessages {
 		Map<String, String> map = mapper.readValue(json, new TypeReference<Map<String,String>>() { });
 		
 		return map;
-	}
+	} 
+ 
  }
