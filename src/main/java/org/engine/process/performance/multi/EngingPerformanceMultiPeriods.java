@@ -49,6 +49,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
 				messageData.setRowDataToSourceDiffTime(diffTime.second());
 				messageData.setSourceToUpdateDiffTime(diffTime.first());
+				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
+				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
+				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
 			} 
 		}
 	}
@@ -56,15 +59,14 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	@Override
 	protected ServiceStatus execute() throws Exception {
 
-		double lat = 4.3;
-		double longX = 6.4;
-
 		for( int i = 0; i < num_of_periods; i++ ) {
 			
-			System.out.println("PERDIOD " + i); 
+			System.out.println("===>PERDIOD " + i); 
 
 			String externalSystemID = utils.randomExternalSystemID();
-			SinglePeriod singlePeriod = new SinglePeriod(); 	
+			SinglePeriod singlePeriod = new SinglePeriod(); 
+			double lat = 4.3;
+			double longX = 6.4;
 
 			for(int j = 0 ; j < num_of_updates; j++) {
 				System.out.println("UPDATE " + j);
@@ -77,12 +79,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 										sourceName,externalSystemID,latStr,longXStr);					
 				
 				handlePerformanceMessages.handleMessage(); 
-				System.out.println("FFF " + j);
 				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
-				System.out.println("FFF2 " + j);
 				lat++;
-				longX++;
-				
+				longX++; 
 				Thread.sleep(5000);
 
 			}
