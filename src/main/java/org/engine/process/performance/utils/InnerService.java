@@ -1,11 +1,15 @@
-package org.engine.process.performance;
+package org.engine.process.performance.utils;
+
+import org.engine.process.performance.ServiceStatus;
 
 public abstract class InnerService {
 
 	abstract protected void preExecute() throws Exception;
 	abstract protected void postExecute() throws Exception;
 	abstract protected ServiceStatus execute() throws Exception;
-	abstract protected String getOutput();
+	abstract public String getOutput();
+	
+	protected Utils utils = new Utils();
 
 	public ServiceStatus run() {
 

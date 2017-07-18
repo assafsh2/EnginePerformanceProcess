@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.engine.process.performance.multi.EngingPerformanceMultiPeriods;
+import org.engine.process.performance.multi.HandlePerformanceMessages;
+import org.engine.process.performance.utils.InnerService;
+
 /**
  * @author assafsh
  *
@@ -22,6 +26,7 @@ public class Main {
 		String fileLocation = System.getenv("FILE_LOCATION");		
 		String secToDelay = System.getenv("SEC_TO_DELAY"); 
 		String startFromBeginning = System.getenv("START_FROM_BEGINNING"); 
+		String multiMessages = System.getenv("MULTI_MESSAGES");
 				 
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
 		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
@@ -31,17 +36,22 @@ public class Main {
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
 		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
+		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		
 		InnerService service;
 		
-		if(startFromBeginning.equalsIgnoreCase("true")) {
+		if(multiMessages.equalsIgnoreCase("true")) {
+			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
+		}	
+		else if(startFromBeginning.equalsIgnoreCase("true")) {
 			service = new EnginePerformanceFromBeginning(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		}
 		else {
 			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		}
+			 
  
 		ServiceStatus status = service.run();
 		System.out.println(status.getMessage());

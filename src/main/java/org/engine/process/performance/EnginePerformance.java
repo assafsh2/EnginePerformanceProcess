@@ -45,6 +45,7 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.engine.process.performance.utils.InnerService;
 
 import java.util.Properties;
 
@@ -125,7 +126,7 @@ public class EnginePerformance extends InnerService {
 
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
-		randomExternalSystemID();
+		externalSystemID = utils.randomExternalSystemID();
 		System.out.println("after random "+externalSystemID); 
 		handleCreateMessage();
 		handleUpdateMessage();		
@@ -499,13 +500,6 @@ public class EnginePerformance extends InnerService {
 		
 		return update.second() - source.second();	
 	}
-
-	private void randomExternalSystemID() {
-
-		Random r = new Random(); 
-		externalSystemID = "performanceProcess-"+r.nextInt(10000);		
-	} 
-
 
 	private void registerSchemas(SchemaRegistryClient schemaRegistry) throws IOException, RestClientException {
 		Schema.Parser parser = new Schema.Parser();
