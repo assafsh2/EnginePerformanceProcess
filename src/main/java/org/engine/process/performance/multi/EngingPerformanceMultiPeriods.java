@@ -16,8 +16,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private String kafkaAddress;
 	private String schemaRegustryUrl;  
 	private String sourceName; 
-	private int num_of_periods = 10;
-	private int num_of_updates = 10;
+	private int num_of_periods;
+	private int num_of_updates;
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -28,7 +28,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
 	
 		num_of_periods = Integer.parseInt(System.getenv("NUM_OF_PERIODS"));
+		System.out.println("AAA"); 
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES"));
+		System.out.println("BBB"); 
 	}
 
 	@Override
@@ -52,7 +54,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 
 	@Override
 	protected ServiceStatus execute() throws Exception {
-
+		System.out.println("CCC"); 
 		double lat = 4.3;
 		double longX = 6.4;
 
