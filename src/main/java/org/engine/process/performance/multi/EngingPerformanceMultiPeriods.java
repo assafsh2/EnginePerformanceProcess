@@ -71,7 +71,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				String longXStr = Double.toString(longX);
 
 				HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
-				System.out.println("Before  handleMessage " + j);																					sourceName,externalSystemID,latStr,longXStr);					
+										sourceName,externalSystemID,latStr,longXStr);					
+				System.out.println("Before  handleMessage " + j);
 				handlePerformanceMessages.handleMessage(); 
 				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
 				System.out.println(singlePeriod.getMessageDataList());
