@@ -11,13 +11,13 @@ import akka.japi.Pair;
 
 public class EngingPerformanceMultiPeriods extends InnerService {
 
-	private List<SinglePeriod> periodsList;
+	private List<SingleCycle> cyclesList;
 
 	private StringBuffer output = new StringBuffer();
 	private String kafkaAddress;
 	private String schemaRegustryUrl;  
 	private String sourceName; 
-	private int num_of_periods;
+	private int num_of_cycles;
 	private int num_of_updates;
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
@@ -26,12 +26,12 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		this.kafkaAddress = kafkaAddress; 
 		this.sourceName = sourceName;
 		this.schemaRegustryUrl = schemaRegistryUrl;
-		System.out.println("NUM_OF_PERIODS::::::::" + System.getenv("NUM_OF_PERIODS")); 
+		System.out.println("NUM_OF_CYCLES::::::::" + System.getenv("NUM_OF_CYCLES")); 
 		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
 		
-		num_of_periods = Integer.parseInt(System.getenv("NUM_OF_PERIODS"));
+		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
-		periodsList = new ArrayList<>();
+		cyclesList = new ArrayList<>();
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	@Override
 	protected void postExecute() throws Exception {
 
-		for(SinglePeriod period : periodsList ) {
+		for(SingleCycle period : cyclesList ) {
 			
 			for( MessageData messageData : period.getMessageDataList()) {
 				
@@ -59,12 +59,12 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	@Override
 	protected ServiceStatus execute() throws Exception {
 
-		for( int i = 0; i < num_of_periods; i++ ) {
+		for( int i = 0; i < num_of_cycles; i++ ) {
 			
-			System.out.println("===>PERDIOD " + i); 
+			System.out.println("===>CYCLE " + i); 
 
 			String externalSystemID = utils.randomExternalSystemID();
-			SinglePeriod singlePeriod = new SinglePeriod(); 
+			SingleCycle singlePeriod = new SingleCycle(); 
 			double lat = 4.3;
 			double longX = 6.4;
 
@@ -79,17 +79,20 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 										sourceName,externalSystemID,latStr,longXStr);					
 				
 				handlePerformanceMessages.handleMessage(); 
-				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
+				MessageData messageData = new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages);
+				messageData.setNumOfCycle(i);
+				messageData.setNumOfUpdate(j);
+				singlePeriod.addMessageData(messageData);
 				lat++;
 				longX++; 
 				Thread.sleep(5000);
 
 			}
 			
-			periodsList.add(singlePeriod); 		
+			cyclesList.add(singlePeriod); 		
 		}
 		
-		System.out.println("END execute  " + periodsList ); 
+		System.out.println("END execute  " + cyclesList ); 
 		return ServiceStatus.SUCCESS;
 
 	}
@@ -97,7 +100,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	@Override
 	public String getOutput() { 
 	
-		for(SinglePeriod period : periodsList ) {
+		for(SingleCycle period : cyclesList ) {
 			
 			for( MessageData messageData : period.getMessageDataList()) {
 				
