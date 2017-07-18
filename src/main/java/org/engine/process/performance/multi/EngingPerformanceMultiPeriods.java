@@ -30,6 +30,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		
 		num_of_periods = Integer.parseInt(System.getenv("NUM_OF_PERIODS"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
+		periodsList = new ArrayList<>();
 	}
 
 	@Override
