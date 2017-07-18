@@ -13,6 +13,9 @@ public class MessageData {
 	private String endl = "\n";
 	private String sourceName;
 	private HandlePerformanceMessages handlePerformanceMessages;
+	private long lastOffsetForRawData;
+	private long lastOffsetForUpdate;
+	private long lastOffsetForSource;
 
 	public MessageData(Date startTime,String externalSystemID, String lat, String longX,String sourceName, HandlePerformanceMessages handlePerformanceMessages) {
 	 
@@ -50,6 +53,9 @@ public class MessageData {
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
 		if( rowDataToSourceDiffTime > 0 ) {
+			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);
+			stringBuffer.append("lastOffsetForUpdate: "+lastOffsetForUpdate).append(endl);
+			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);			
 			stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rowDataToSourceDiffTime +" millisec").append(endl);
 			stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
 		}
@@ -64,6 +70,30 @@ public class MessageData {
 			HandlePerformanceMessages handlePerformanceMessages) {
 		this.handlePerformanceMessages = handlePerformanceMessages;
 	} 
+	
+	public long getLastOffsetForRawData() {
+		return lastOffsetForRawData;
+	}
+
+	public void setLastOffsetForRawData(long lastOffsetForRawData) {
+		this.lastOffsetForRawData = lastOffsetForRawData;
+	}
+
+	public long getLastOffsetForUpdate() {
+		return lastOffsetForUpdate;
+	}
+
+	public void setLastOffsetForUpdate(long lastOffsetForUpdate) {
+		this.lastOffsetForUpdate = lastOffsetForUpdate;
+	}
+
+	public long getLastOffsetForSource() {
+		return lastOffsetForSource;
+	}
+
+	public void setLastOffsetForSource(long lastOffsetForSource) {
+		this.lastOffsetForSource = lastOffsetForSource;
+	}
 	
 	
 }
