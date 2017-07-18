@@ -57,21 +57,24 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		double longX = 6.4;
 
 		for( int i = 0; i < num_of_periods; i++ ) {
+			
+			System.out.println("PERDIOD " + i); 
 
 			String externalSystemID = utils.randomExternalSystemID();
 			SinglePeriod singlePeriod = new SinglePeriod(); 	
 
 			for(int j = 0 ; j < num_of_updates; j++) {
+				System.out.println("UPDATE " + j);
 				
 				Date startTime = new Date(System.currentTimeMillis());
 				String latStr = Double.toString(lat);
 				String longXStr = Double.toString(longX);
 
 				HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
-																									sourceName,externalSystemID,latStr,longXStr);					
+				System.out.println("Before  handleMessage " + j)																					sourceName,externalSystemID,latStr,longXStr);					
 				handlePerformanceMessages.handleMessage(); 
 				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
-
+				System.out.println(singlePeriod.getMessageDataList());
 				lat = lat * 1.3;
 				longX = longX * 2.3;
 				
