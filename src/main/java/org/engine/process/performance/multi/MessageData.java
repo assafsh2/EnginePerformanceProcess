@@ -57,9 +57,9 @@ public class MessageData {
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
 		if( rowDataToSourceDiffTime > 0 ) {
-			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);
+			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
+			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	
 			stringBuffer.append("lastOffsetForUpdate: "+lastOffsetForUpdate).append(endl);
-			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);			
 			stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rowDataToSourceDiffTime +" millisec").append(endl);
 			stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
 		}
