@@ -75,10 +75,11 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 										sourceName,externalSystemID,latStr,longXStr);					
 				
 				handlePerformanceMessages.handleMessage(); 
+				System.out.println("FFF " + j);
 				singlePeriod.addMessageData(new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages));
-
-				lat = lat * 1.3;
-				longX = longX * 2.3;
+				System.out.println("FFF2 " + j);
+				lat++;
+				longX++;
 				
 				Thread.sleep(5000);
 
