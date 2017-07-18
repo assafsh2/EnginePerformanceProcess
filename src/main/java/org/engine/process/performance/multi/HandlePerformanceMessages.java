@@ -60,9 +60,9 @@ public class HandlePerformanceMessages {
 	private KafkaConsumer<Object, Object> consumer;
 	private KafkaConsumer<Object, Object> consumer2;
 	private KafkaConsumer<Object, Object> consumer3;
-	private TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-	private TopicPartition partitionSource = new TopicPartition(sourceName, 0);
-	private TopicPartition partitionUpdate = new TopicPartition("update", 0);
+	private TopicPartition partitionRawData;
+	private TopicPartition partitionSource;
+	private TopicPartition partitionUpdate;
 	private String lat;
 	private String longX;
 	
@@ -75,6 +75,9 @@ public class HandlePerformanceMessages {
 		this.externalSystemID = externalSystemID; 
 		this.lat = lat;
 		this.longX = longX; 
+		partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
+		partitionSource = new TopicPartition(sourceName, 0);
+		partitionUpdate = new TopicPartition("update", 0);
 	}
 
 	public void handleMessage() throws IOException, RestClientException {
