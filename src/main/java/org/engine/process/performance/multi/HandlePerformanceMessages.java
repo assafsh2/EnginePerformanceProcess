@@ -103,11 +103,15 @@ public class HandlePerformanceMessages {
 		consumer2.assign(Arrays.asList(partitionUpdate));
 		System.out.println("handleMessage 8 ");
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
+		System.out.println("handleMessage 89 ");
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
-		
+		System.out.println("handleMessage 894 ");
 		consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
+		System.out.println("handleMessage 8944 "+partitionSource);
 		consumer3.assign(Arrays.asList(partitionSource));
+		System.out.println("handleMessage 894433 ");
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
+		System.out.println("handleMessage 894433ddd ");
 		lastOffsetForSource = consumer3.position(partitionSource); 
 		System.out.println("handleMessage 9 ");
 		output.append("The current offset before produce the message are ").append(endl);
