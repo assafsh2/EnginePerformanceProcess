@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
  
 
+
 import org.apache.avro.generic.GenericRecord; 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,6 +18,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+
 import akka.japi.Pair;  
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
@@ -81,16 +83,25 @@ public class HandlePerformanceMessages {
 		updateRecordsList.clear(); 
 		sourceRecordsList.clear(); 
 		
+		System.out.println("handleMessage 1 "); 
+		
 		Properties props = getProperties(false); 
+		System.out.println("handleMessage 2 "); 
 		Properties propsWithAvro = getProperties(true); 
+		System.out.println("handleMessage 3 "); 
 				
 		consumer = new KafkaConsumer<Object, Object>(props);
+		System.out.println("handleMessage 4 "); 
 		consumer.assign(Arrays.asList(partitionRawData));
+		System.out.println("handleMessage 5 ");
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
+		System.out.println("handleMessage 6 ");
 		lastOffsetForRawData = consumer.position(partitionRawData); 
 
 		consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
+		System.out.println("handleMessage 7 ");
 		consumer2.assign(Arrays.asList(partitionUpdate));
+		System.out.println("handleMessage 8 ");
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
 		
@@ -98,16 +109,17 @@ public class HandlePerformanceMessages {
 		consumer3.assign(Arrays.asList(partitionSource));
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
 		lastOffsetForSource = consumer3.position(partitionSource); 
-		
+		System.out.println("handleMessage 9 ");
 		output.append("The current offset before produce the message are ").append(endl);
 		output.append(sourceName+"-raw-data : "+lastOffsetForRawData).append(endl);
 		output.append(sourceName+" :"+lastOffsetForSource).append(endl);
 		output.append("update :"+lastOffsetForUpdate).append(endl);
  
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-
+			System.out.println("handleMessage 10 ");
 			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(lat,longX));
 			producer.send(record); 
+			System.out.println("handleMessage 11 ");
 
 		}
 	}
