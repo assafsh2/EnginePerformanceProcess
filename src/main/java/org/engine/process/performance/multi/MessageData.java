@@ -49,9 +49,10 @@ public class MessageData {
 		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
-		stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rowDataToSourceDiffTime +" millisec").append(endl);
-		stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
-
+		if( rowDataToSourceDiffTime > 0 ) {
+			stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rowDataToSourceDiffTime +" millisec").append(endl);
+			stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
+		}
 	    return stringBuffer.toString();
 	}
 
