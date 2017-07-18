@@ -1,17 +1,13 @@
-package org.engine.process.performance;
+package org.engine.process.performance.multi;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;  
 import java.util.List;
-import java.util.Map;
-import java.util.Random;  
+import java.util.Map;  
 import java.util.stream.Collectors;
+ 
 
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-
-import org.apache.avro.Schema; 
 import org.apache.avro.generic.GenericRecord; 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -21,14 +17,11 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-
-import akka.japi.Pair; 
-import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
+import akka.japi.Pair;  
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.engine.process.performance.utils.InnerService;
+import org.apache.kafka.clients.producer.KafkaProducer; 
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -48,109 +41,60 @@ import java.util.Properties;
  *
  */
 
-public class EnginePerformanceFromBeginning extends InnerService {
+public class HandlePerformanceMessages {
 
 	private StringBuffer output = new StringBuffer();
 	private String externalSystemID;	
 	private String kafkaAddress;
-	private String schemaRegustryUrl; 
-	private String schemaRegustryIdentity;
+	private String schemaRegustryUrl;  
 	private String sourceName;   
-	private String endl = "\n";
-	private SchemaRegistryClient schemaRegistry = null;
+	private String endl = "\n"; 
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
+	private long lastOffsetForRawData;
+	private long lastOffsetForUpdate;
+	private long lastOffsetForSource;
+	private KafkaConsumer<Object, Object> consumer;
+	private KafkaConsumer<Object, Object> consumer2;
+	private KafkaConsumer<Object, Object> consumer3;
+	private TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
+	private TopicPartition partitionSource = new TopicPartition(sourceName, 0);
+	private TopicPartition partitionUpdate = new TopicPartition("update", 0);
+	private String lat;
+	private String longX;
+	
 
-	public EnginePerformanceFromBeginning(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
+	public HandlePerformanceMessages(String kafkaAddress, String schemaRegustryUrl, String sourceName, String externalSystemID, String lat , String longX) {
 
 		this.kafkaAddress = kafkaAddress;
-		this.schemaRegustryUrl = schemaRegustryUrl;
-		this.schemaRegustryIdentity = schemaRegustryIdentity;
+		this.schemaRegustryUrl = schemaRegustryUrl; 
 		this.sourceName = sourceName; 
+		this.externalSystemID = externalSystemID; 
+		this.lat = lat;
+		this.longX = longX; 
 	}
 
-	@Override
-	public String getOutput() {
-		return output.toString();
-	}
-
-	@Override
-	public void preExecute() throws IOException, RestClientException {
-
-		if(kafkaAddress == null) {
-
-			this.kafkaAddress = "localhost:9092";
-		}
-
-		if(schemaRegustryUrl != null) {
-
-			schemaRegistry = new CachedSchemaRegistryClient(schemaRegustryUrl, Integer.parseInt(schemaRegustryIdentity));
-		}
-		else {
-			schemaRegistry = new MockSchemaRegistryClient();
-			registerSchemas(schemaRegistry);
-		}
-	}
-
-	@Override
-	public void postExecute() {
-
-	}
-
-	@Override
-	public ServiceStatus execute() throws IOException, RestClientException {
-		externalSystemID = utils.randomExternalSystemID();
-		System.out.println("After random "+externalSystemID); 
+	public void handleMessage() throws IOException, RestClientException {
 		
-		System.out.println("Create message with KafkaConsumer");
-		output.append("Create a new entity").append(endl);
-		output.append("===================").append(endl);
-		handleMessage("44.9","95.8");
-		Pair<Long,Long> diffTime = getTimeDifferences("44.9", "95.8");
-		output.append("The create action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
-		output.append("The create action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl).append(endl);
-		
-		
-		System.out.println("Update message with KafkaConsumer");
-		output.append("Update the entity").append(endl);
-		output.append("=================").append(endl);
-		handleMessage("34.66","48.66");		
-		diffTime = getTimeDifferences("34.66","48.66");
-		output.append("The update action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
-		output.append("The update action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl);
-		
-		return ServiceStatus.SUCCESS;
-	}
-
-	private void handleMessage(String lat,String longX) throws IOException, RestClientException {
-		
-		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		TopicPartition partitionSource = new TopicPartition(sourceName, 0);
-		TopicPartition partitionUpdate = new TopicPartition("update", 0);
-
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
 		sourceRecordsList.clear(); 
 		
-		long lastOffsetForRawData;
-		long lastOffsetForUpdate;
-		long lastOffsetForSource;
-		
 		Properties props = getProperties(false); 
 		Properties propsWithAvro = getProperties(true); 
 				
-		KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(props);
+		consumer = new KafkaConsumer<Object, Object>(props);
 		consumer.assign(Arrays.asList(partitionRawData));
 		consumer.seekToEnd(Arrays.asList(partitionRawData));
 		lastOffsetForRawData = consumer.position(partitionRawData); 
 
-		KafkaConsumer<Object, Object> consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
+		consumer2 = new KafkaConsumer<Object, Object>(propsWithAvro);
 		consumer2.assign(Arrays.asList(partitionUpdate));
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
 		
-		KafkaConsumer<Object, Object> consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
+		consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
 		consumer3.assign(Arrays.asList(partitionSource));
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
 		lastOffsetForSource = consumer3.position(partitionSource); 
@@ -159,31 +103,13 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		output.append(sourceName+"-raw-data : "+lastOffsetForRawData).append(endl);
 		output.append(sourceName+" :"+lastOffsetForSource).append(endl);
 		output.append("update :"+lastOffsetForUpdate).append(endl);
-		
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {}			
-
+ 
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
 			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(lat,longX));
 			producer.send(record); 
 
 		}
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {}	
-
-		consumer.seek(partitionRawData, lastOffsetForRawData);
-		callConsumersWithKafkaConsuemr(consumer,lat,longX);
-
-		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
-		callConsumersWithKafkaConsuemr(consumer2,lat,longX); 
-		
-		consumer3.seek(partitionSource, lastOffsetForSource);
-		callConsumersWithKafkaConsuemr(consumer3,lat,longX);
 	}
 
 	private String getJsonGenericRecord(String lat,String longX) {
@@ -241,7 +167,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		return props;
 	}
 
-	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) throws JsonParseException, JsonMappingException, IOException {
+	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer) throws JsonParseException, JsonMappingException, IOException {
 
 		boolean isRunning = true;
 		while (isRunning) {
@@ -292,13 +218,17 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		}
 	}
 
-	private Pair<Long,Long> getTimeDifferences(String inputLat,String inputLongX) {
+	public Pair<Long,Long> getTimeDifferences() throws Exception {
 
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		consumer.seek(partitionRawData, lastOffsetForRawData);
+		callConsumersWithKafkaConsuemr(consumer);
+
+		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
+		callConsumersWithKafkaConsuemr(consumer2); 
+		
+		consumer3.seek(partitionSource, lastOffsetForSource);
+		callConsumersWithKafkaConsuemr(consumer3);
+		
 	
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("====Consumer from topic update: "+update.toString());
@@ -308,55 +238,8 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		System.out.println("====Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
 
 		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
-	}
-
-	private void registerSchemas(SchemaRegistryClient schemaRegistry) throws IOException, RestClientException {
-		Schema.Parser parser = new Schema.Parser();
-		schemaRegistry.register("detectionEvent",
-				parser.parse("{\"type\": \"record\", "
-						+ "\"name\": \"detectionEvent\", "
-						+ "\"doc\": \"This is a schema for entity detection report event\", "
-						+ "\"fields\": ["
-						+ "{ \"name\": \"sourceName\", \"type\": \"string\", \"doc\" : \"interface name\" }, "
-						+ "{ \"name\": \"externalSystemID\", \"type\": \"string\", \"doc\":\"external system ID\"}"
-						+ "]}"));
-		schemaRegistry.register("basicEntityAttributes",
-				parser.parse("{\"type\": \"record\","
-						+ "\"name\": \"basicEntityAttributes\","
-						+ "\"doc\": \"This is a schema for basic entity attributes, this will represent basic entity in all life cycle\","
-						+ "\"fields\": ["
-						+ "{\"name\": \"coordinate\", \"type\":"
-						+ "{\"type\": \"record\","
-						+ "\"name\": \"coordinate\","
-						+ "\"doc\": \"Location attribute in grid format\","
-						+ "\"fields\": ["
-						+ "{\"name\": \"lat\",\"type\": \"double\"},"
-						+ "{\"name\": \"long\",\"type\": \"double\"}"
-						+ "]}},"
-						+ "{\"name\": \"isNotTracked\",\"type\": \"boolean\"},"
-						+ "{\"name\": \"entityOffset\",\"type\": \"long\"},"
-						+ "{\"name\": \"sourceName\", \"type\": \"string\"}"	
-						+ "]}"));
-		schemaRegistry.register("generalEntityAttributes",
-				parser.parse("{\"type\": \"record\", "
-						+ "\"name\": \"generalEntityAttributes\","
-						+ "\"doc\": \"This is a schema for general entity before acquiring by the system\","
-						+ "\"fields\": ["
-						+ "{\"name\": \"basicAttributes\",\"type\": \"basicEntityAttributes\"},"
-						+ "{\"name\": \"speed\",\"type\": \"double\",\"doc\" : \"This is the magnitude of the entity's velcity vector.\"},"
-						+ "{\"name\": \"elevation\",\"type\": \"double\"},"
-						+ "{\"name\": \"course\",\"type\": \"double\"},"
-						+ "{\"name\": \"nationality\",\"type\": {\"name\": \"nationality\", \"type\": \"enum\",\"symbols\" : [\"ISRAEL\", \"USA\", \"SPAIN\"]}},"
-						+ "{\"name\": \"category\",\"type\": {\"name\": \"category\", \"type\": \"enum\",\"symbols\" : [\"airplane\", \"boat\"]}},"
-						+ "{\"name\": \"pictureURL\",\"type\": \"string\"},"
-						+ "{\"name\": \"height\",\"type\": \"double\"},"
-						+ "{\"name\": \"nickname\",\"type\": \"string\"},"
-						+ "{\"name\": \"externalSystemID\",\"type\": \"string\",\"doc\" : \"This is ID given be external system.\"}"
-						+ "]}"));
-
-
-	}
-
+	} 
+	
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		
 		ObjectMapper mapper = new ObjectMapper();
