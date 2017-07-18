@@ -24,6 +24,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		
 		this.kafkaAddress = kafkaAddress; 
 		this.sourceName = sourceName;
+		this.schemaRegustryUrl = schemaRegistryUrl;
 		System.out.println("NUM_OF_PERIODS::::::::" + System.getenv("NUM_OF_PERIODS")); 
 		System.out.println("AANUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
 	System.out.println("GGG"); 
