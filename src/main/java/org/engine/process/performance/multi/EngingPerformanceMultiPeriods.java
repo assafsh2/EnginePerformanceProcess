@@ -50,13 +50,13 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
 		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
 		
-		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles*num_of_updates];
-		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles*num_of_updates];
-		totalDiffTimeCreateArray= new double[num_of_cycles*num_of_updates];
+		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles];
+		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles];
+		totalDiffTimeCreateArray= new double[num_of_cycles];
 		
-		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
-		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
-		totalDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
+		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
+		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
+		totalDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
 	}
 
 	@Override
