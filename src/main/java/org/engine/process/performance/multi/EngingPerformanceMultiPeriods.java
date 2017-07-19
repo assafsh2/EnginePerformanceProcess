@@ -179,9 +179,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		output.append("Export to CSV ").append(endl);
-		output.append("==CREATE==").append(endl);
+		output.append("CREATE").append(endl);
 		output.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
-		output.append("==UPDATE==").append(endl);
+		output.append("UPDATE").append(endl);
 		output.append(utils.createCsvFile(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
 			
 		return output.toString();
