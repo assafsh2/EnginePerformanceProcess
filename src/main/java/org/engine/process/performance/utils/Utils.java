@@ -1,10 +1,21 @@
 package org.engine.process.performance.utils;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.Random;
+
+import org.engine.process.performance.multi.SingleCycle;
 
 public class Utils {
 
 	private static Random random;
+	private String seperator = ",";
+	private String endl = "\n";
+	
 
 	static {
 		random = new Random();
@@ -64,6 +75,47 @@ public class Utils {
 
 		return squareRoot;
 	} 
+	
+	
+ 
+	public String createCsvFile(double[] rowDataToSourceDiffTimeArray,
+			double[] sourceToUpdateDiffTimeArray, double[] totalDiffTimeArray,String sourceName) {
 	 
+		StringBuffer output = new StringBuffer(); 
+		output.append("DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(getLine(rowDataToSourceDiffTimeArray)).append("\n");
+		output.append("DiffTime between <"+sourceName+"> and <update>").append(getLine(sourceToUpdateDiffTimeArray)).append("\n");
+		output.append("Total DiffTime").append(getLine(totalDiffTimeArray)).append("\n");
+			
+		//printToFile(output.toString(),"");
+		
+		return output.toString();
+			
+ 
+	}
+	 
+	private String getLine(double[] array) {
+		
+		StringBuffer output = new StringBuffer();
+		for(double d : array ) 
+		{
+			output.append(seperator).append(d);
+		}
+		
+		return output.toString();
+		
+	}
+	
+	public void printToFile(String output, String fileLocation)   {
+		 
+		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
+		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
+		{
+			fw.write(output+"\n");	 
+		} catch (IOException e) {
+			 
+			e.printStackTrace();
+		}
+	}
+
 
 }

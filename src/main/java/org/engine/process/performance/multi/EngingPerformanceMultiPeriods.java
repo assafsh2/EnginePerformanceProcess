@@ -74,7 +74,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				index++;
 			} 
 			i++;
-		}
+		} 
 	}
 
 	@Override
@@ -144,6 +144,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.standardDeviation(rowDataToSourceDiffTimeArray)).append(endl);
 		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+utils.standardDeviation(sourceToUpdateDiffTimeArray)).append(endl);
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
+		
+		output.append("Export to CSV ").append(endl);
+		output.append(utils.createCsvFile(rowDataToSourceDiffTimeArray,sourceToUpdateDiffTimeArray,totalDiffTimeArray,sourceName));
 		
 		return output.toString();
 	} 
