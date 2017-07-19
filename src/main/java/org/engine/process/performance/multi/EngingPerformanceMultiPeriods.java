@@ -145,11 +145,6 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+utils.standardDeviation(sourceToUpdateDiffTimeArray)).append(endl);
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
-		output.append("The standard deviation between <"+sourceName+"-row-data> and <"+sourceName+"> is "+StdStats.stddev(rowDataToSourceDiffTimeArray)).append(endl);
-		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+StdStats.stddev(sourceToUpdateDiffTimeArray)).append(endl);
-		output.append("The standard deviation  of total is "+StdStats.stddev(totalDiffTimeArray)).append(endl);
- 
-		
 		return output.toString();
 	} 
 }
