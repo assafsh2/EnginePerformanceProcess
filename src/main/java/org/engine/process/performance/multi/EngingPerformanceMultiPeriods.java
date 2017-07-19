@@ -1,6 +1,8 @@
 package org.engine.process.performance.multi;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +21,10 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private String sourceName; 
 	private int num_of_cycles;
 	private int num_of_updates;
+	private String endl = "\n";
+	private long[] rowDataToSourceDiffTimeArray;
+	private long[] sourceToUpdateDiffTimeArray;
+	private long[] totalDiffTimeArray;
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -32,6 +38,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
 		cyclesList = new ArrayList<>();
+		rowDataToSourceDiffTimeArray = new long[num_of_cycles*num_of_updates];
+		sourceToUpdateDiffTimeArray= new long[num_of_cycles*num_of_updates];
+		totalDiffTimeArray= new long[num_of_cycles*num_of_updates];
 	}
 
 	@Override
@@ -44,6 +53,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		
 		System.out.println("===postExecute");
 		int i = 0;
+		int index = 0;
 		for(SingleCycle period : cyclesList ) {
 			System.out.println("Cycle "+i);
 			int j = 0;
@@ -53,10 +63,14 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
 				messageData.setRowDataToSourceDiffTime(diffTime.second());
 				messageData.setSourceToUpdateDiffTime(diffTime.first());
+				rowDataToSourceDiffTimeArray[index] = diffTime.second();
+				sourceToUpdateDiffTimeArray[index] = diffTime.first();
+				totalDiffTimeArray[index] =  diffTime.first()+diffTime.second();
 				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
 				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
 				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
 				j++;
+				index++;
 			} 
 			i++;
 		}
@@ -113,6 +127,21 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				output.append(messageData.toString());
 			} 
 		}
+ 		
+		Arrays.sort(rowDataToSourceDiffTimeArray);
+		Arrays.sort(sourceToUpdateDiffTimeArray);
+		Arrays.sort(totalDiffTimeArray);
+		
+		output.append(endl);
+		output.append("The average between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.mean(rowDataToSourceDiffTimeArray) ).append(endl);
+		output.append("The average between <"+sourceName+"> and <update> is "+utils.mean(sourceToUpdateDiffTimeArray)).append(endl);
+		output.append("The average of total is "+utils.mean(totalDiffTimeArray)).append(endl);
+		output.append("The median between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.median(rowDataToSourceDiffTimeArray)).append(endl);
+		output.append("The median between <"+sourceName+"> and <update> is "+utils.median(sourceToUpdateDiffTimeArray)).append(endl);
+		output.append("The median of total is "+utils.median(totalDiffTimeArray)).append(endl);
+		output.append("The standard deviation between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.standardDeviation(rowDataToSourceDiffTimeArray)).append(endl);
+		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+utils.standardDeviation(sourceToUpdateDiffTimeArray)).append(endl);
+		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		return output.toString();
 	} 
