@@ -27,6 +27,13 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private double[] sourceToUpdateDiffTimeArray;
 	private double[] totalDiffTimeArray;
 	
+	private double[] rowDataToSourceDiffTimeUpdateArray;
+	private double[] sourceToUpdateDiffTimeUpdateArray;
+	private double[] totalDiffTimeUpdateArray;
+	private double[] rowDataToSourceDiffTimeCreateArray;
+	private double[] sourceToUpdateDiffTimeCreateArray;
+	private double[] totalDiffTimeCreateArray;
+	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
 		
@@ -42,6 +49,14 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates];
 		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
 		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
+		
+		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles*num_of_updates];
+		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles*num_of_updates];
+		totalDiffTimeCreateArray= new double[num_of_cycles*num_of_updates];
+		
+		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
+		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
+		totalDiffTimeUpdateArray = new double[num_of_cycles*num_of_updates];
 	}
 
 	@Override
@@ -55,6 +70,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		System.out.println("===postExecute");
 		int i = 0;
 		int index = 0;
+		int index1 = 0;
+		int index2 = 0;
 		for(SingleCycle period : cyclesList ) {
 			System.out.println("Cycle "+i);
 			int j = 0;
@@ -67,6 +84,20 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				rowDataToSourceDiffTimeArray[index] = (double) diffTime.second();
 				sourceToUpdateDiffTimeArray[index] = (double)diffTime.first();
 				totalDiffTimeArray[index] = (double) diffTime.first()+diffTime.second();
+				
+				if( j == 0 ) {
+					rowDataToSourceDiffTimeCreateArray[index1] = (double) diffTime.second();
+					sourceToUpdateDiffTimeCreateArray[index1] = (double)diffTime.first();
+					totalDiffTimeCreateArray[index1] = (double) diffTime.first()+diffTime.second();	
+					index1++;
+				}
+				else {
+					rowDataToSourceDiffTimeUpdateArray[index2] = (double) diffTime.second();
+					sourceToUpdateDiffTimeUpdateArray[index2] = (double)diffTime.first();
+					totalDiffTimeUpdateArray[index2] = (double) diffTime.first()+diffTime.second();
+					index2++;
+				}
+				
 				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
 				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
 				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
@@ -148,8 +179,11 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		output.append("Export to CSV ").append(endl);
-		output.append(csvData);
-		
+		output.append("==CREATE==").append(endl);
+		output.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
+		output.append("==UPDATE==").append(endl);
+		output.append(utils.createCsvFile(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
+			
 		return output.toString();
 	} 
 }
