@@ -128,6 +128,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				output.append(messageData.toString());
 			} 
 		}
+		
+		String csvData = utils.createCsvFile(rowDataToSourceDiffTimeArray,sourceToUpdateDiffTimeArray,totalDiffTimeArray,sourceName);
  		
 		Arrays.sort(rowDataToSourceDiffTimeArray);
 		Arrays.sort(sourceToUpdateDiffTimeArray);
@@ -146,7 +148,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		output.append("Export to CSV ").append(endl);
-		output.append(utils.createCsvFile(rowDataToSourceDiffTimeArray,sourceToUpdateDiffTimeArray,totalDiffTimeArray,sourceName));
+		output.append(csvData);
 		
 		return output.toString();
 	} 
