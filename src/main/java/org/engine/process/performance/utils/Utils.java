@@ -17,7 +17,7 @@ public class Utils {
 
 	} 
 
-	public double median(long[] array) {
+	public double median(double[] array) {
 		int middle = array.length/2;
 		if (array.length%2 == 1) {
 			return array[middle];
@@ -26,7 +26,7 @@ public class Utils {
 		}
 	}
 
-	public double mean(long[] array) {
+	public double mean(double[] array) {
 		double sum = 0;
 		for (int i = 0; i < array.length; i++) {
 			sum += array[i];
@@ -34,13 +34,13 @@ public class Utils {
 		return sum / array.length;
 	}
 
-	public double standardDeviation(long[] array) { 
+	public double standardDeviation(double[] array) { 
 
 		double sum=0;
 		double finalsum = 0;
 		double average = 0;
 
-		for( long i : array) {
+		for( double i : array) {
 			finalsum = (sum += i);
 		}
 		System.out.println("Average: "+ finalsum/(array.length));
@@ -63,5 +63,6 @@ public class Utils {
 
 		return squareRoot;
 	} 
+	 
 
 }

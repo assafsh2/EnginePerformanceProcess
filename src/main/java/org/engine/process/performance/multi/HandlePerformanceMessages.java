@@ -257,7 +257,6 @@ public class HandlePerformanceMessages {
 		consumer3.seek(partitionSource, lastOffsetForSource);
 		callConsumersWithKafkaConsuemr(consumer3);
 		
-		System.out.println("\n\n\n");
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("====Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);

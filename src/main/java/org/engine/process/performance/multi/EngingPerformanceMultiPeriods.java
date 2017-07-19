@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.engine.process.performance.ServiceStatus;
 import org.engine.process.performance.utils.InnerService;
+import org.engine.process.performance.utils.StdStats;
 
 import akka.japi.Pair;
 
@@ -22,9 +23,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private int num_of_cycles;
 	private int num_of_updates;
 	private String endl = "\n";
-	private long[] rowDataToSourceDiffTimeArray;
-	private long[] sourceToUpdateDiffTimeArray;
-	private long[] totalDiffTimeArray;
+	private double[] rowDataToSourceDiffTimeArray;
+	private double[] sourceToUpdateDiffTimeArray;
+	private double[] totalDiffTimeArray;
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -38,9 +39,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
 		cyclesList = new ArrayList<>();
-		rowDataToSourceDiffTimeArray = new long[num_of_cycles*num_of_updates];
-		sourceToUpdateDiffTimeArray= new long[num_of_cycles*num_of_updates];
-		totalDiffTimeArray= new long[num_of_cycles*num_of_updates];
+		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates];
+		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
+		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
 	}
 
 	@Override
@@ -59,13 +60,13 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			int j = 0;
 			for( MessageData messageData : period.getMessageDataList()) {
 				
-				System.out.println("Update "+j);				
+				System.out.println("\nUpdate "+j);				
 				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
 				messageData.setRowDataToSourceDiffTime(diffTime.second());
 				messageData.setSourceToUpdateDiffTime(diffTime.first());
-				rowDataToSourceDiffTimeArray[index] = diffTime.second();
-				sourceToUpdateDiffTimeArray[index] = diffTime.first();
-				totalDiffTimeArray[index] =  diffTime.first()+diffTime.second();
+				rowDataToSourceDiffTimeArray[index] = (double) diffTime.second();
+				sourceToUpdateDiffTimeArray[index] = (double)diffTime.first();
+				totalDiffTimeArray[index] = (double) diffTime.first()+diffTime.second();
 				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
 				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
 				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
@@ -132,6 +133,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		Arrays.sort(sourceToUpdateDiffTimeArray);
 		Arrays.sort(totalDiffTimeArray);
 		
+		
 		output.append(endl);
 		output.append("The average between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.mean(rowDataToSourceDiffTimeArray) ).append(endl);
 		output.append("The average between <"+sourceName+"> and <update> is "+utils.mean(sourceToUpdateDiffTimeArray)).append(endl);
@@ -142,6 +144,11 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation between <"+sourceName+"-row-data> and <"+sourceName+"> is "+utils.standardDeviation(rowDataToSourceDiffTimeArray)).append(endl);
 		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+utils.standardDeviation(sourceToUpdateDiffTimeArray)).append(endl);
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
+		
+		output.append("The standard deviation between <"+sourceName+"-row-data> and <"+sourceName+"> is "+StdStats.stddev(rowDataToSourceDiffTimeArray)).append(endl);
+		output.append("The standard deviation  between <"+sourceName+"> and <update> is "+StdStats.stddev(sourceToUpdateDiffTimeArray)).append(endl);
+		output.append("The standard deviation  of total is "+StdStats.stddev(totalDiffTimeArray)).append(endl);
+ 
 		
 		return output.toString();
 	} 
