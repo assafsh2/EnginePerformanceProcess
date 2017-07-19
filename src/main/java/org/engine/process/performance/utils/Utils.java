@@ -43,7 +43,8 @@ public class Utils {
 		for( double i : array) {
 			finalsum = (sum += i);
 		}
-		System.out.println("Average: "+ finalsum/(array.length));
+		average = finalsum/(array.length);
+		//System.out.println("Average: "+ average);
 
 		double sumX=0;
 		double finalsumX=0;
@@ -51,7 +52,7 @@ public class Utils {
 		for (int i = 0; i<array.length; i++){
 			double fvalue = (Math.pow((array[i] - average), 2));
 			x1_average[i] = fvalue;
-			System.out.println("test: "+ fvalue);
+			//System.out.println("test: "+ fvalue);
 		}
 
 		for(double i : x1_average) {
