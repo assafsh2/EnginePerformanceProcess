@@ -56,7 +56,9 @@ public class HandlePerformanceMessages {
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 	private long lastOffsetForRawData;
 	private long lastOffsetForUpdate;
-	private long lastOffsetForSource;
+	private long lastOffsetForSource;	
+	private Pair<Long,Long> timeDifferences;
+	
 	public long getLastOffsetForRawData() {
 		return lastOffsetForRawData;
 	}
@@ -246,7 +248,7 @@ public class HandlePerformanceMessages {
 		}
 	}
 
-	public Pair<Long,Long> getTimeDifferences() throws Exception {
+	public void callConsumer() throws Exception {
 
 		consumer.seek(partitionRawData, lastOffsetForRawData);
 		callConsumersWithKafkaConsuemr(consumer);
@@ -263,9 +265,15 @@ public class HandlePerformanceMessages {
 		System.out.println("====Consumer from topic source: "+source.toString());
 		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
 		System.out.println("====Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
-
-		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
+		
+		timeDifferences = new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
 	} 
+	
+	
+	public Pair<Long,Long> getTimeDifferences() throws Exception {
+		
+		return timeDifferences; 
+	}	
 	
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		

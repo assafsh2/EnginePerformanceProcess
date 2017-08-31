@@ -36,7 +36,7 @@ public class Main {
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
 		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
-		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 
+		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 		
 		
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 		

@@ -1,10 +1,19 @@
 package org.engine.process.performance.multi;
 
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.engine.process.performance.ServiceStatus;
 import org.engine.process.performance.utils.InnerService;
@@ -15,7 +24,6 @@ import akka.japi.Pair;
 public class EngingPerformanceMultiPeriods extends InnerService {
 
 	private List<SingleCycle> cyclesList;
-
 	private StringBuffer output = new StringBuffer();
 	private String kafkaAddress;
 	private String schemaRegustryUrl;  
@@ -33,6 +41,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private double[] rowDataToSourceDiffTimeCreateArray;
 	private double[] sourceToUpdateDiffTimeCreateArray;
 	private double[] totalDiffTimeCreateArray;
+	private int interval;
+	private int durationInMin; 
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -40,23 +50,17 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		this.kafkaAddress = kafkaAddress; 
 		this.sourceName = sourceName;
 		this.schemaRegustryUrl = schemaRegistryUrl;
+		cyclesList = Collections.synchronizedList(new ArrayList<SingleCycle>());	
+		
 		System.out.println("NUM_OF_CYCLES::::::::" + System.getenv("NUM_OF_CYCLES")); 
 		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
+		System.out.println("DURATION (in Minute)::::::::" + System.getenv("DURATION")); 
+		System.out.println("INTERVAL::::::::" + System.getenv("INTERVAL")); 
 		
 		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
-		cyclesList = new ArrayList<>();
-		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates];
-		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
-		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
-		
-		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles];
-		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles];
-		totalDiffTimeCreateArray= new double[num_of_cycles];
-		
-		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
-		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
-		totalDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
+		interval = Integer.parseInt(System.getenv("INTERVAL"));
+		durationInMin = Integer.parseInt(System.getenv("DURATION"));			 
 	}
 
 	@Override
@@ -68,14 +72,27 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	protected void postExecute() throws Exception {
 		
 		System.out.println("===postExecute");
+		
+		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates];
+		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
+		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
+		
+		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles];
+		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles];
+		totalDiffTimeCreateArray= new double[num_of_cycles];
+		
+		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
+		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
+		totalDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)]; 
+		
 		int i = 0;
 		int index = 0;
 		int index1 = 0;
 		int index2 = 0;
-		for(SingleCycle period : cyclesList ) {
+		for(SingleCycle cycle : cyclesList ) {
 			System.out.println("Cycle "+i);
 			int j = 0;
-			for( MessageData messageData : period.getMessageDataList()) {
+			for( MessageData messageData : cycle.getMessageDataList()) {
 				
 				System.out.println("\nUpdate "+j);				
 				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
@@ -111,44 +128,50 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	@Override
 	protected ServiceStatus execute() throws Exception {
 
-		for( int i = 0; i < num_of_cycles; i++ ) {
+		if( durationInMin > 0 && num_of_cycles > 0 ) {
+
+			System.out.println("Error: Both DURATION and NUM_OF_CYCLE have value"); 
+			return ServiceStatus.FAILURE;			
+		}
+
+		if( num_of_cycles > 0 ) {
+
+			for( int i = 0; i < num_of_cycles; i++ ) {
+
+				System.out.println("===>CYCLE " + i); 
+
+				runSingleCycle(i); 		
+			}
+		}
+		else {
 			
-			System.out.println("===>CYCLE " + i); 
-
-			String externalSystemID = utils.randomExternalSystemID();
-			SingleCycle singlePeriod = new SingleCycle(); 
-			double lat = 4.3;
-			double longX = 6.4;
-
-			for(int j = 0 ; j < num_of_updates; j++) {
-				System.out.println("UPDATE " + j);
+			ExecutorService executor = Executors.newFixedThreadPool(5);
+			long startTime = System.currentTimeMillis();
+			long endTime = startTime + durationInMin * 60000;	 
+			num_of_cycles = 0;
+			while ( System.currentTimeMillis() < endTime) {
 				
-				Date startTime = new Date(System.currentTimeMillis());
-				String latStr = Double.toString(lat);
-				String longXStr = Double.toString(longX);
-
-				HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
-										sourceName,externalSystemID,latStr,longXStr);					
+				System.out.println("===>CYCLE " + num_of_cycles);
+				SingleCycle singlePeriod = runSingleCycle(num_of_cycles);
+				cyclesList.add(singlePeriod); 
+				Runnable worker = new MessageConsumerThread(singlePeriod);
+				executor.execute(worker);
+				num_of_cycles++;
 				
-				handlePerformanceMessages.handleMessage(); 
-				MessageData messageData = new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages);
-				messageData.setNumOfCycle(i);
-				messageData.setNumOfUpdate(j);
-				singlePeriod.addMessageData(messageData);
-				lat++;
-				longX++; 
-				Thread.sleep(5000);
-
+				Thread.sleep(interval);
 			}
 			
-			cyclesList.add(singlePeriod); 		
+	        executor.shutdown();
+	        while (!executor.isTerminated()) {
+	        }
+	        System.out.println("Finished all threads");
 		}
-		
-		System.out.println("END execute  " + cyclesList ); 
+
+		System.out.println("END execute"); 
 		return ServiceStatus.SUCCESS;
 
 	}
-
+	
 	@Override
 	public String getOutput() { 
 	
@@ -160,7 +183,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			} 
 		}
 		
-		String csvData = utils.createCsvFile(rowDataToSourceDiffTimeArray,sourceToUpdateDiffTimeArray,totalDiffTimeArray,sourceName);
+		//String csvData = utils.createCsvFile(rowDataToSourceDiffTimeArray,sourceToUpdateDiffTimeArray,totalDiffTimeArray,sourceName);
  		
 		Arrays.sort(rowDataToSourceDiffTimeArray);
 		Arrays.sort(sourceToUpdateDiffTimeArray);
@@ -186,4 +209,35 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			
 		return output.toString();
 	} 
-}
+	
+	private SingleCycle runSingleCycle(int numOfCycle) throws IOException, RestClientException, InterruptedException {
+		
+		String externalSystemID = utils.randomExternalSystemID();
+		SingleCycle singleCycle = new SingleCycle(); 
+		double lat = 4.3;
+		double longX = 6.4;
+
+		for(int j = 0 ; j < num_of_updates; j++) {
+			System.out.println("UPDATE " + j);
+			
+			Date startTime = new Date(System.currentTimeMillis());
+			String latStr = Double.toString(lat);
+			String longXStr = Double.toString(longX);
+
+			HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
+									sourceName,externalSystemID,latStr,longXStr);					
+			
+			handlePerformanceMessages.handleMessage(); 
+			MessageData messageData = new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages);
+			messageData.setNumOfCycle(numOfCycle);
+			messageData.setNumOfUpdate(j);
+			singleCycle.addMessageData(messageData);
+			lat++;
+			longX++; 
+			Thread.sleep(5);
+
+		}
+		
+		return singleCycle;
+	}
+} 
