@@ -59,6 +59,8 @@ public class Main {
 		if(status != ServiceStatus.SUCCESS)
 			System.exit(-1);
 		
+		System.out.println(status.getMessage());
+		
 		if(printToFile.equalsIgnoreCase("true")) {
 			
 			printToFile(service.getOutput(),fileLocation);

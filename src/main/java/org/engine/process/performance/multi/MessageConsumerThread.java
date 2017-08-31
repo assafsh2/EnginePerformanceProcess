@@ -12,10 +12,10 @@ class MessageConsumerThread implements Runnable {
 	@Override
 	public void run() {
 
-		int i = 0;
 		for( MessageData messageData : singleCycle.getMessageDataList()) {
-
-			System.out.println("\nUpdate "+i);				
+	
+			System.out.println("in Thread num_of_cycle "+messageData.getNumOfCycle()+" num_of_update "+messageData.getNumOfUpdate());
+			
 			try {
 				messageData.getHandlePerformanceMessages().callConsumer();
 			} catch (Exception e) {
