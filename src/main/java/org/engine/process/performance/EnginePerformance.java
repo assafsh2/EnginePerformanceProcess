@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.List; 
 import java.util.concurrent.CompletionStage;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -554,6 +553,12 @@ public class EnginePerformance extends InnerService {
 		}
 		int id = schemaRegistry.getLatestSchemaMetadata(name).getId();
 		return schemaRegistry.getByID(id);
+	}
+
+	@Override
+	public String getOutputToFile() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
  

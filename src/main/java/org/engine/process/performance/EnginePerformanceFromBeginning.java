@@ -364,4 +364,10 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		
 		return map;
 	}
+
+	@Override
+	public String getOutputToFile() {
+		// TODO Auto-generated method stub
+		return null;
+	}
  }

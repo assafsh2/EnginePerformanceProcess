@@ -8,6 +8,7 @@ public abstract class InnerService {
 	abstract protected void postExecute() throws Exception;
 	abstract protected ServiceStatus execute() throws Exception;
 	abstract public String getOutput();
+	abstract public String getOutputToFile();
 	
 	protected Utils utils = new Utils();
 

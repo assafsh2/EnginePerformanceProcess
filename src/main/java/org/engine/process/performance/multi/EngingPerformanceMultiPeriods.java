@@ -43,6 +43,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private double[] totalDiffTimeCreateArray;
 	private int interval;
 	private int durationInMin; 
+	private int numOfInteraces;
+	private int numOfUpdates;
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -56,11 +58,15 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
 		System.out.println("DURATION (in Minute)::::::::" + System.getenv("DURATION")); 
 		System.out.println("INTERVAL::::::::" + System.getenv("INTERVAL")); 
+		System.out.println("NUM_OF_INTERFACES::::::::" + System.getenv("NUM_OF_INTERFACES")); 
+		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_INTERFACES")); 
 		
 		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
 		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
 		interval = Integer.parseInt(System.getenv("INTERVAL"));
-		durationInMin = Integer.parseInt(System.getenv("DURATION"));			 
+		durationInMin = Integer.parseInt(System.getenv("DURATION"));	
+		numOfInteraces = Integer.parseInt(System.getenv("NUM_OF_INTERFACES"));
+		numOfUpdates = Integer.parseInt(System.getenv("NUM_OF_UPDATES"));
 	}
 
 	@Override
@@ -202,6 +208,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		output.append("Export to CSV ").append(endl);
+		output.append("NUM_OF_INTERCAES").append(numOfInteraces).append(endl);
+		output.append("NUM_OF_UPDATES").append(numOfUpdates).append(endl);
 		output.append("CREATE").append(endl);
 		output.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
 		output.append("UPDATE").append(endl);
@@ -239,5 +247,28 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		}
 		
 		return singleCycle;
+	}
+
+	@Override
+	public String getOutputToFile() {
+		
+		StringBuffer outputToFile = new StringBuffer();
+		outputToFile.append("NUM_OF_INTERCAES").append(numOfInteraces).append(endl);
+		outputToFile.append("NUM_OF_UPDATES").append(numOfUpdates).append(endl);
+		if( durationInMin > 0 ) {
+			outputToFile.append("DURATION(MIN)").append(num_of_cycles).append(endl);
+		}
+		else {
+			outputToFile.append("NUM_OF_CYCLES").append(num_of_cycles).append(endl);
+		}
+		outputToFile.append("INTERVAL").append(interval).append(endl); 
+		outputToFile.append("CREATE").append(endl);
+		outputToFile.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
+		outputToFile.append("UPDATE").append(endl);
+		outputToFile.append(utils.createCsvFile(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
+			
+		return outputToFile.toString();
+	 
+		 
 	}
 } 

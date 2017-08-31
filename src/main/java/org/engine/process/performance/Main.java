@@ -53,22 +53,22 @@ public class Main {
 		}
 			 
  
-		ServiceStatus status = service.run();
-		System.out.println(status.getMessage());
+		ServiceStatus status = service.run(); 
 		
-		if(status != ServiceStatus.SUCCESS)
+		if(status != ServiceStatus.SUCCESS) {	
+			System.out.println(status.getMessage());
 			System.exit(-1);
+		}		 
 		
-		System.out.println(status.getMessage());
+		System.out.println(service.getOutput());
 		
 		if(printToFile.equalsIgnoreCase("true")) {
 			
-			printToFile(service.getOutput(),fileLocation);
+			printToFile(service.getOutputToFile(),fileLocation);
 			
-		}
-		else { 
-				System.out.println(service.getOutput());	 
-		}
+		} 
+		
+		System.out.println("END!");
 	}
 	
 	public static void printToFile(String output, String fileLocation) throws IOException {
