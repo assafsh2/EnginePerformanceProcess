@@ -1,5 +1,6 @@
 package org.engine.process.performance;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -74,7 +75,7 @@ public class Main {
 	public static void printToFile(String output, String fileLocation) throws IOException {
  
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
+		try( FileWriter fw = new FileWriter(new File(fileLocation+"/enginePeformanceResult_"+dateTime+".log")))
 		{
 			fw.write(output+"\n");	 
 		}
