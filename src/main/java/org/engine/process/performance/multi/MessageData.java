@@ -58,10 +58,10 @@ public class MessageData {
 		stringBuffer.append("longX: "+longX).append(endl);
 		if(rowDataToSourceDiffTime < 0 || sourceToUpdateDiffTime < 0 ) {
 			
-			System.out.println("Error - The clock is not syncronized between hosts");
-			return null;
+			System.out.println("Error - The clock is not syncronized between hosts rowDataToSourceDiffTime "+rowDataToSourceDiffTime+" sourceToUpdateDiffTime "+sourceToUpdateDiffTime);
+			//return null;
 		}
-		if( rowDataToSourceDiffTime > 0 ) {
+		if( rowDataToSourceDiffTime >= 0 && sourceToUpdateDiffTime >= 0) {
 			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
 			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	
 			stringBuffer.append("lastOffsetForUpdate: "+lastOffsetForUpdate).append(endl);

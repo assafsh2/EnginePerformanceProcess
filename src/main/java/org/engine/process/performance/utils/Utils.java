@@ -101,10 +101,10 @@ public class Utils {
 		
 		output.append("CREATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
 		output.append("CREATE - DiffTime between <"+sourceName+"> and <update>").append(seperator);
-		output.append("CREATE Total DiffTime").append(seperator);
+		output.append("CREATE - Total DiffTime").append(seperator);
 		output.append("UPDATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
 		output.append("UPDATE - DiffTime between <"+sourceName+"> and <update>").append(seperator);
-		output.append("UPDATE Total DiffTime").append("\n");
+		output.append("UPDATE - Total DiffTime").append("\n");
 		int[] maxArray = new int[]{rowDataToSourceDiffTimeCreateArray.length,sourceToUpdateDiffTimeCreateArray.length, totalDiffTimeCreateArray.length,
 								  rowDataToSourceDiffTimeUpdateArray.length,sourceToUpdateDiffTimeUpdateArray.length,totalDiffTimeUpdateArray.length};
 		 
@@ -113,37 +113,37 @@ public class Utils {
 		
 		for( int i = 0; i < max; i++) {
 			
-			if( i < rowDataToSourceDiffTimeCreateArray.length -1 ) {
+			if( i < rowDataToSourceDiffTimeCreateArray.length ) {
 				output.append(rowDataToSourceDiffTimeCreateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
 			}
-			if( i < sourceToUpdateDiffTimeCreateArray.length -1 ) {
+			if( i < sourceToUpdateDiffTimeCreateArray.length ) {
 				output.append(sourceToUpdateDiffTimeCreateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
 			}
-			if( i < totalDiffTimeCreateArray.length -1 ) {
+			if( i < totalDiffTimeCreateArray.length ) {
 				output.append(totalDiffTimeCreateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
 			}
-			if( i < rowDataToSourceDiffTimeUpdateArray.length -1 ) {
+			if( i < rowDataToSourceDiffTimeUpdateArray.length ) {
 				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
 			}
-			if( i < sourceToUpdateDiffTimeUpdateArray.length -1 ) {
+			if( i < sourceToUpdateDiffTimeUpdateArray.length ) {
 				output.append(sourceToUpdateDiffTimeUpdateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
 			}
-			if( i < totalDiffTimeUpdateArray.length -1 ) {
+			if( i < totalDiffTimeUpdateArray.length ) {
 				output.append(totalDiffTimeUpdateArray[i]).append(endl);
 			}
 			else {
