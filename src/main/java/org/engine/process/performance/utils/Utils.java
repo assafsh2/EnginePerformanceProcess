@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -78,15 +80,76 @@ public class Utils {
 	
 	
  
-	public String createCsvFile(double[] rowDataToSourceDiffTimeArray,
+	public String createCsvFileDataInRows(double[] rowDataToSourceDiffTimeArray,
 			double[] sourceToUpdateDiffTimeArray, double[] totalDiffTimeArray,String sourceName) {
 	 
 		StringBuffer output = new StringBuffer(); 
 		output.append("DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(getLine(rowDataToSourceDiffTimeArray)).append("\n");
 		output.append("DiffTime between <"+sourceName+"> and <update>").append(getLine(sourceToUpdateDiffTimeArray)).append("\n");
 		output.append("Total DiffTime").append(getLine(totalDiffTimeArray)).append("\n");
+		
+		return output.toString();
 			
-		//printToFile(output.toString(),"");
+ 
+	}
+ 	
+	public String createCsvFileDataInColumns(double[] rowDataToSourceDiffTimeCreateArray,double[] sourceToUpdateDiffTimeCreateArray, double[] totalDiffTimeCreateArray,
+							double[] rowDataToSourceDiffTimeUpdateArray,double[] sourceToUpdateDiffTimeUpdateArray, double[] totalDiffTimeUpdateArray,String sourceName) {
+	 
+		StringBuffer output = new StringBuffer(); 
+		
+		
+		output.append("CREATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
+		output.append("CREATE - DiffTime between <"+sourceName+"> and <update>").append(seperator);
+		output.append("CREATE Total DiffTime").append(seperator);
+		output.append("UPDATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
+		output.append("UPDATE - DiffTime between <"+sourceName+"> and <update>").append(seperator);
+		output.append("UPDATE Total DiffTime").append("\n");
+		int[] maxArray = new int[]{rowDataToSourceDiffTimeCreateArray.length,sourceToUpdateDiffTimeCreateArray.length, totalDiffTimeCreateArray.length,
+								  rowDataToSourceDiffTimeUpdateArray.length,sourceToUpdateDiffTimeUpdateArray.length,totalDiffTimeUpdateArray.length};
+		 
+		Arrays.sort(maxArray);
+		int max = maxArray[maxArray.length - 1];
+		
+		for( int i = 0; i < max; i++) {
+			
+			if( i < rowDataToSourceDiffTimeCreateArray.length -1 ) {
+				output.append(rowDataToSourceDiffTimeCreateArray[i]).append(seperator);
+			}
+			else {
+				output.append("").append(seperator);
+			}
+			if( i < sourceToUpdateDiffTimeCreateArray.length -1 ) {
+				output.append(sourceToUpdateDiffTimeCreateArray[i]).append(seperator);
+			}
+			else {
+				output.append("").append(seperator);
+			}
+			if( i < totalDiffTimeCreateArray.length -1 ) {
+				output.append(totalDiffTimeCreateArray[i]).append(seperator);
+			}
+			else {
+				output.append("").append(seperator);
+			}
+			if( i < rowDataToSourceDiffTimeUpdateArray.length -1 ) {
+				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(seperator);
+			}
+			else {
+				output.append("").append(seperator);
+			}
+			if( i < sourceToUpdateDiffTimeUpdateArray.length -1 ) {
+				output.append(sourceToUpdateDiffTimeUpdateArray[i]).append(seperator);
+			}
+			else {
+				output.append("").append(seperator);
+			}
+			if( i < totalDiffTimeUpdateArray.length -1 ) {
+				output.append(totalDiffTimeUpdateArray[i]).append(endl);
+			}
+			else {
+				output.append("").append(endl);
+			} 
+		} 
 		
 		return output.toString();
 			

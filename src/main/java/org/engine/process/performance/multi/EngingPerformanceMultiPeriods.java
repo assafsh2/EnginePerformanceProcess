@@ -215,10 +215,15 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
 		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdates).append(endl);
 		output.append("CREATE").append(endl);
-		output.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
+		output.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
 		output.append("UPDATE").append(endl);
-		output.append(utils.createCsvFile(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
+		output.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl).append(endl);
 			
+		output.append(utils.createCsvFileDataInColumns(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,
+							rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
+				                       
+		
+		
 		return output.toString();
 	} 
 	
@@ -267,9 +272,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		}
 		outputToFile.append("INTERVAL").append(interval).append(endl); 
 		outputToFile.append("CREATE").append(endl);
-		outputToFile.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
+		outputToFile.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
 		outputToFile.append("UPDATE").append(endl);
-		outputToFile.append(utils.createCsvFile(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
+		outputToFile.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
 			
 		return outputToFile.toString();
 	 
