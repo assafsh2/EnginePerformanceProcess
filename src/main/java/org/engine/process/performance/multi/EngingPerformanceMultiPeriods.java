@@ -29,7 +29,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private String schemaRegustryUrl;  
 	private String sourceName; 
 	private int num_of_cycles;
-	private int num_of_updates;
+	private int num_of_updates_per_cycle;
 	private String endl = "\n";
 	private double[] rowDataToSourceDiffTimeArray;
 	private double[] sourceToUpdateDiffTimeArray;
@@ -55,18 +55,18 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		cyclesList = Collections.synchronizedList(new ArrayList<SingleCycle>());	
 		
 		System.out.println("NUM_OF_CYCLES::::::::" + System.getenv("NUM_OF_CYCLES")); 
-		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
+		System.out.println("NUM_OF_UPDATES_PER_CYCLE::::::::" + System.getenv("NUM_OF_UPDATES_PER_CYCLE")); 
 		System.out.println("DURATION (in Minute)::::::::" + System.getenv("DURATION")); 
 		System.out.println("INTERVAL::::::::" + System.getenv("INTERVAL")); 
 		System.out.println("NUM_OF_INTERFACES::::::::" + System.getenv("NUM_OF_INTERFACES")); 
-		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_INTERFACES")); 
+		System.out.println("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
 		
 		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
-		num_of_updates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
+		num_of_updates_per_cycle = Integer.parseInt(System.getenv("NUM_OF_UPDATES_PER_CYCLE")); 
 		interval = Integer.parseInt(System.getenv("INTERVAL"));
 		durationInMin = Integer.parseInt(System.getenv("DURATION"));	
 		numOfInteraces = Integer.parseInt(System.getenv("NUM_OF_INTERFACES"));
-		numOfUpdates = Integer.parseInt(System.getenv("NUM_OF_UPDATES"));
+		numOfUpdates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
 	}
 
 	@Override
@@ -79,17 +79,17 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		
 		System.out.println("===postExecute");
 		
-		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates];
-		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates];
-		totalDiffTimeArray= new double[num_of_cycles*num_of_updates];
+		rowDataToSourceDiffTimeArray = new double[num_of_cycles*num_of_updates_per_cycle];
+		sourceToUpdateDiffTimeArray= new double[num_of_cycles*num_of_updates_per_cycle];
+		totalDiffTimeArray= new double[num_of_cycles*num_of_updates_per_cycle];
 		
 		rowDataToSourceDiffTimeCreateArray = new double[num_of_cycles];
 		sourceToUpdateDiffTimeCreateArray= new double[num_of_cycles];
 		totalDiffTimeCreateArray= new double[num_of_cycles];
 		
-		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
-		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)];
-		totalDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates-1)]; 
+		rowDataToSourceDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates_per_cycle-1)];
+		sourceToUpdateDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates_per_cycle-1)];
+		totalDiffTimeUpdateArray = new double[num_of_cycles*(num_of_updates_per_cycle-1)]; 
 		
 		int i = 0;
 		int index = 0;
@@ -225,7 +225,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		double lat = 4.3;
 		double longX = 6.4;
 
-		for(int j = 0 ; j < num_of_updates; j++) {
+		for(int j = 0 ; j < num_of_updates_per_cycle; j++) {
 			System.out.println("UPDATE " + j);
 			
 			Date startTime = new Date(System.currentTimeMillis());
