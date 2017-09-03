@@ -151,7 +151,6 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				cyclesList.add(singlePeriod);
 				Runnable worker = new MessageConsumerThread(singlePeriod);
 				executor.execute(worker);
-				Thread.sleep(interval);
 			}
 		}
 		else {
@@ -166,9 +165,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				cyclesList.add(singlePeriod); 
 				Runnable worker = new MessageConsumerThread(singlePeriod);
 				executor.execute(worker);
-				num_of_cycles++;
-				
-				Thread.sleep(interval);
+				num_of_cycles++;				 
 			} 
 		}
 		
@@ -221,7 +218,18 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
 		output.append("UPDATE").append(endl);
 		output.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl).append(endl);
-			
+		
+		
+		
+		output.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
+		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdates).append(endl);
+		if( durationInMin > 0 ) {
+			output.append("DURATION(MIN)").append(seperator).append(num_of_cycles).append(endl);
+		}
+		else {
+			output.append("NUM_OF_CYCLES").append(seperator).append(num_of_cycles).append(endl);
+		}
+		output.append("INTERVAL").append(interval).append(endl); 
 		output.append(utils.createCsvFileDataInColumns(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,
 							rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
 				                       
@@ -254,7 +262,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			singleCycle.addMessageData(messageData);
 			lat++;
 			longX++; 
-			Thread.sleep(5);
+			Thread.sleep(interval);
 
 		}
 		
