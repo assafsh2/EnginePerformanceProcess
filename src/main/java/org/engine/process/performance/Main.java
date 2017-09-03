@@ -18,7 +18,7 @@ import org.engine.process.performance.utils.InnerService;
 public class Main {
 
 	public static void main(String[] args) throws InterruptedException, IOException {
-		 
+
 		String kafkaAddress = System.getenv("KAFKA_ADDRESS");
 		String schemaRegistryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
 		String schemaRegistryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
@@ -28,7 +28,7 @@ public class Main {
 		String secToDelay = System.getenv("SEC_TO_DELAY"); 
 		String startFromBeginning = System.getenv("START_FROM_BEGINNING"); 
 		String multiMessages = System.getenv("MULTI_MESSAGES");
-				 
+
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
 		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
 		System.out.println("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
@@ -38,11 +38,11 @@ public class Main {
 		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
 		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
 		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 		
-		
+
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
-		
+
 		InnerService service;
-		
+
 		if(multiMessages.equalsIgnoreCase("true")) {
 			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
 		}	
@@ -52,35 +52,41 @@ public class Main {
 		else {
 			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		}
-			 
- 
+
+
 		ServiceStatus status = service.run(); 
-		
+
 		if(status != ServiceStatus.SUCCESS) {	
 			System.out.println(status.getMessage());
 			System.exit(-1);
 		}		 
-		
+
 		System.out.println(service.getOutput());
-		
+
 		if(printToFile.equalsIgnoreCase("true")) {
-			
+
 			printToFile(service.getOutputToFile(),fileLocation);
-			
+
 		} 
-		
+
 		System.out.println("END!");
 	}
-	
+
 	public static void printToFile(String output, String fileLocation) throws IOException {
- 
+
+		if(fileLocation.isEmpty()) {
+			fileLocation = System.getenv("HOME");
+		} 
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		try( FileWriter fw = new FileWriter(new File(fileLocation+"/enginePeformanceResult_"+dateTime+".log")))
+		File file = new File(fileLocation+"/enginePeformanceResult_"+dateTime+".log");
+		file.createNewFile();	
+		
+ 		try( FileWriter fw = new FileWriter(file))
 		{
 			fw.write(output+"\n");	 
 		}
 	}
 
-	 
+
 
 }
