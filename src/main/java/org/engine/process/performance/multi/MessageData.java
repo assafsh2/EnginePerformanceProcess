@@ -56,6 +56,11 @@ public class MessageData {
 		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
+		if(rowDataToSourceDiffTime < 0 || sourceToUpdateDiffTime < 0 ) {
+			
+			System.out.println("Error - The clock is not syncronized between hosts");
+			return null;
+		}
 		if( rowDataToSourceDiffTime > 0 ) {
 			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
 			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	

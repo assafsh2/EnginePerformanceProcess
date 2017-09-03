@@ -45,6 +45,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	private int durationInMin; 
 	private int numOfInteraces;
 	private int numOfUpdates;
+	private String seperator = ",";
 	
 	public EngingPerformanceMultiPeriods(String kafkaAddress,
 			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
@@ -185,6 +186,9 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			
 			for( MessageData messageData : period.getMessageDataList()) {
 				
+				String msg = messageData.toString();
+				if(msg == null) 
+					return null;
 				output.append(messageData.toString());
 			} 
 		}
@@ -208,8 +212,8 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		output.append("The standard deviation  of total is "+utils.standardDeviation(totalDiffTimeArray)).append(endl);
 		
 		output.append("Export to CSV ").append(endl);
-		output.append("NUM_OF_INTERCAES").append(numOfInteraces).append(endl);
-		output.append("NUM_OF_UPDATES").append(numOfUpdates).append(endl);
+		output.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
+		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdates).append(endl);
 		output.append("CREATE").append(endl);
 		output.append(utils.createCsvFile(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,sourceName)).append(endl);
 		output.append("UPDATE").append(endl);
@@ -253,13 +257,13 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 	public String getOutputToFile() {
 		
 		StringBuffer outputToFile = new StringBuffer();
-		outputToFile.append("NUM_OF_INTERCAES").append(numOfInteraces).append(endl);
-		outputToFile.append("NUM_OF_UPDATES").append(numOfUpdates).append(endl);
+		outputToFile.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
+		outputToFile.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdates).append(endl);
 		if( durationInMin > 0 ) {
-			outputToFile.append("DURATION(MIN)").append(num_of_cycles).append(endl);
+			outputToFile.append("DURATION(MIN)").append(seperator).append(num_of_cycles).append(endl);
 		}
 		else {
-			outputToFile.append("NUM_OF_CYCLES").append(num_of_cycles).append(endl);
+			outputToFile.append("NUM_OF_CYCLES").append(seperator).append(num_of_cycles).append(endl);
 		}
 		outputToFile.append("INTERVAL").append(interval).append(endl); 
 		outputToFile.append("CREATE").append(endl);
