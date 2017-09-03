@@ -141,18 +141,21 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 			return ServiceStatus.FAILURE;			
 		}
 
+		ExecutorService executor = Executors.newFixedThreadPool(5);
 		if( num_of_cycles > 0 ) {
 
 			for( int i = 0; i < num_of_cycles; i++ ) {
 
 				System.out.println("===>CYCLE " + i); 
-
-				runSingleCycle(i); 		
+				SingleCycle singlePeriod = runSingleCycle(i); 		
+				cyclesList.add(singlePeriod);
+				Runnable worker = new MessageConsumerThread(singlePeriod);
+				executor.execute(worker);
+				Thread.sleep(interval);
 			}
 		}
 		else {
-			
-			ExecutorService executor = Executors.newFixedThreadPool(5);
+			 
 			long startTime = System.currentTimeMillis();
 			long endTime = startTime + durationInMin * 60000;	 
 			num_of_cycles = 0;
@@ -166,13 +169,13 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 				num_of_cycles++;
 				
 				Thread.sleep(interval);
-			}
-			
-	        executor.shutdown();
-	        while (!executor.isTerminated()) {
-	        }
-	        System.out.println("Finished all threads");
+			} 
 		}
+		
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+        System.out.println("Finished all threads");
 
 		System.out.println("END execute"); 
 		return ServiceStatus.SUCCESS;
