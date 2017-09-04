@@ -25,8 +25,7 @@ public class Main {
 		String sourceName = System.getenv("SOURCE_NAME");
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");		
-		String secToDelay = System.getenv("SEC_TO_DELAY"); 
-		String startFromBeginning = System.getenv("START_FROM_BEGINNING"); 
+		String secToDelay = System.getenv("SEC_TO_DELAY");
 		String multiMessages = System.getenv("MULTI_MESSAGES");
 
 		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
@@ -35,8 +34,7 @@ public class Main {
 		System.out.println("SOURCE_NAME::::::::" + sourceName);
 		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
 		System.out.println("FILE_LOCATION::::::::" + fileLocation);
-		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
-		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
+		System.out.println("SEC_TO_DELAY::::::::" + secToDelay);
 		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 		
 
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
@@ -46,13 +44,9 @@ public class Main {
 		if(multiMessages.equalsIgnoreCase("true")) {
 			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
 		}	
-		else if(startFromBeginning.equalsIgnoreCase("true")) {
+		else  {
 			service = new EnginePerformanceFromBeginning(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		}
-		else {
-			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		}
-
+		} 
 
 		ServiceStatus status = service.run(); 
 
