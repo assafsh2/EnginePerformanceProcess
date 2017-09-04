@@ -74,7 +74,7 @@ public class Main {
 
 	public static void printToFile(String output, String fileLocation) throws IOException {
 
-		if(fileLocation.isEmpty()) {
+		if(fileLocation == null || fileLocation.isEmpty()) {
 			fileLocation = System.getenv("HOME");
 		} 
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
