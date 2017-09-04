@@ -132,7 +132,7 @@ public class Utils {
 				output.append("").append(seperator);
 			}*/
 			if( i < rowDataToSourceDiffTimeUpdateArray.length ) {
-				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(endl);
+				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(seperator);
 			}
 			else {
 				output.append("").append(seperator);
@@ -141,7 +141,7 @@ public class Utils {
 				output.append(sourceToUpdateDiffTimeUpdateArray[i]).append(endl);
 			}
 			else {
-				output.append("").append(seperator);
+				output.append("").append(endl);
 			}
 			/*if( i < totalDiffTimeUpdateArray.length ) {
 				output.append(totalDiffTimeUpdateArray[i]).append(endl);
