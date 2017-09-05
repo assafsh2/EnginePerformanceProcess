@@ -71,8 +71,13 @@ public class Main {
 		if(fileLocation == null || fileLocation.isEmpty()) {
 			fileLocation = System.getenv("HOME");
 		} 
+		
+		File dir = new File(fileLocation);
+		if( !dir.exists()) {
+			dir.mkdir();
+		}
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		File file = new File(fileLocation+"/enginePeformanceResult_"+dateTime+".log");
+		File file = new File(fileLocation,"/enginePeformanceResult_"+dateTime+".log");
 		file.createNewFile();	
 		
  		try( FileWriter fw = new FileWriter(file))
