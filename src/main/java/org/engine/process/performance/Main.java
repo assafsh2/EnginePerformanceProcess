@@ -77,7 +77,7 @@ public class Main {
 			dir.mkdir();
 		} 
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		String fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".log";
+		String fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".csv";
 		System.out.println("Create output file in: "+fileName);
 		File file = new File(fileName);
 		file.createNewFile();	
