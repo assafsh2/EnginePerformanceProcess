@@ -281,7 +281,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		else {
 			outputToFile.append("NUM_OF_CYCLES").append(seperator).append(num_of_cycles).append(endl);
 		}
-		outputToFile.append("INTERVAL").append(interval).append(endl); 
+		outputToFile.append("INTERVAL").append(seperator).append(interval).append(endl); 
 		/*
 		outputToFile.append("CREATE").append(endl);
 		
@@ -289,7 +289,7 @@ public class EngingPerformanceMultiPeriods extends InnerService {
 		outputToFile.append("UPDATE").append(endl);
 		outputToFile.append(utils.createCsvFileDataInRows(rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
 		*/
-		output.append(utils.createCsvFileDataInColumns(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,
+		outputToFile.append(utils.createCsvFileDataInColumns(rowDataToSourceDiffTimeCreateArray,sourceToUpdateDiffTimeCreateArray,totalDiffTimeCreateArray,
 				rowDataToSourceDiffTimeUpdateArray,sourceToUpdateDiffTimeUpdateArray,totalDiffTimeUpdateArray,sourceName)).append(endl);
 		
 		return outputToFile.toString();
