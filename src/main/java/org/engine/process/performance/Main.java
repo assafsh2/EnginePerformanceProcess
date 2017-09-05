@@ -75,9 +75,11 @@ public class Main {
 		File dir = new File(fileLocation);
 		if( !dir.exists()) {
 			dir.mkdir();
-		}
+		} 
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		File file = new File(fileLocation,"/enginePeformanceResult_"+dateTime+".log");
+		String fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".log";
+		System.out.println("Create output file in: "+fileName);
+		File file = new File(fileName);
 		file.createNewFile();	
 		
  		try( FileWriter fw = new FileWriter(file))
