@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;  
 import java.util.List;
-import java.util.Map;
-import java.util.Random;  
+import java.util.Map; 
 import java.util.stream.Collectors;
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
@@ -48,7 +47,7 @@ import java.util.Properties;
  *
  */
 
-public class EnginePerformanceFromBeginning extends InnerService {
+public class EnginePerformanceSingle extends InnerService {
 
 	private StringBuffer output = new StringBuffer();
 	private String externalSystemID;	
@@ -62,7 +61,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 
-	public EnginePerformanceFromBeginning(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
+	public EnginePerformanceSingle(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
 
 		this.kafkaAddress = kafkaAddress;
 		this.schemaRegustryUrl = schemaRegustryUrl;

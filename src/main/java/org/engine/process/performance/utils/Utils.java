@@ -1,16 +1,12 @@
 package org.engine.process.performance.utils;
-
-import java.io.File;
+ 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat; 
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.Date; 
 import java.util.Random;
-
-import org.engine.process.performance.multi.SingleCycle;
+ 
 
 public class Utils {
 
@@ -56,16 +52,14 @@ public class Utils {
 		for( double i : array) {
 			finalsum = (sum += i);
 		}
-		average = finalsum/(array.length);
-		//System.out.println("Average: "+ average);
+		average = finalsum/(array.length); 
 
 		double sumX=0;
 		double finalsumX=0;
 		double[] x1_average = new double[array.length+1];
 		for (int i = 0; i<array.length; i++){
 			double fvalue = (Math.pow((array[i] - average), 2));
-			x1_average[i] = fvalue;
-			//System.out.println("test: "+ fvalue);
+			x1_average[i] = fvalue; 
 		}
 
 		for(double i : x1_average) {
@@ -100,11 +94,9 @@ public class Utils {
 		
 		
 		output.append("CREATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
-		output.append("CREATE - DiffTime between <"+sourceName+"> and <update>").append(seperator);
-	//	output.append("CREATE - Total DiffTime").append(seperator);
+		output.append("CREATE - DiffTime between <"+sourceName+"> and <update>").append(seperator); 
 		output.append("UPDATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
-		output.append("UPDATE - DiffTime between <"+sourceName+"> and <update>").append("\n");
-	//	output.append("UPDATE - Total DiffTime").append("\n");
+		output.append("UPDATE - DiffTime between <"+sourceName+"> and <update>").append("\n"); 
 		int[] maxArray = new int[]{rowDataToSourceDiffTimeCreateArray.length,sourceToUpdateDiffTimeCreateArray.length,
 								  rowDataToSourceDiffTimeUpdateArray.length,sourceToUpdateDiffTimeUpdateArray.length};
 		 
@@ -124,13 +116,7 @@ public class Utils {
 			}
 			else {
 				output.append("").append(seperator);
-			}
-			/*if( i < totalDiffTimeCreateArray.length ) {
-				output.append(totalDiffTimeCreateArray[i]).append(seperator);
-			}
-			else {
-				output.append("").append(seperator);
-			}*/
+			} 
 			if( i < rowDataToSourceDiffTimeUpdateArray.length ) {
 				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(seperator);
 			}
@@ -142,13 +128,7 @@ public class Utils {
 			}
 			else {
 				output.append("").append(endl);
-			}
-			/*if( i < totalDiffTimeUpdateArray.length ) {
-				output.append(totalDiffTimeUpdateArray[i]).append(endl);
-			}
-			else {
-				output.append("").append(endl);
-			} */
+			} 
 		} 
 		
 		return output.toString();

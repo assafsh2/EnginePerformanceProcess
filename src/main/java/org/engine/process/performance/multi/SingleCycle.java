@@ -6,20 +6,15 @@ import java.util.Date;
 import java.util.List;
 
 public class SingleCycle   {
-	
-	private final Date startTime;	
+
 	private List<MessageData> messageDataList;
 	
 	public SingleCycle() {
-		
-		startTime = new Date(System.currentTimeMillis());
-		messageDataList = Collections.synchronizedList(new ArrayList<MessageData>());		
+		 messageDataList = Collections.synchronizedList(new ArrayList<MessageData>());		
 	}
 
 	public void addMessageData(MessageData messageData) {
-
-		messageDataList.add(messageData);
-		
+		messageDataList.add(messageData);		
 	}
 
 	public List<MessageData> getMessageDataList() {

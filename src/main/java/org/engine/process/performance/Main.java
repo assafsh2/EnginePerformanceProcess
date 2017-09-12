@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.engine.process.performance.multi.EngingPerformanceMultiPeriods;
-import org.engine.process.performance.multi.HandlePerformanceMessages;
+import org.engine.process.performance.multi.EngingPerformanceMultiPeriods; 
 import org.engine.process.performance.utils.InnerService;
 
 /**
@@ -45,7 +44,7 @@ public class Main {
 			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
 		}	
 		else  {
-			service = new EnginePerformanceFromBeginning(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+			service = new EnginePerformanceSingle(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		} 
 
 		ServiceStatus status = service.run(); 

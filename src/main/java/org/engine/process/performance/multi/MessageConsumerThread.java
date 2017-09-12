@@ -18,8 +18,8 @@ class MessageConsumerThread implements Runnable {
 			
 			try {
 				messageData.getHandlePerformanceMessages().callConsumer();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) { 
+				
 				e.printStackTrace();
 			} 
 		}
