@@ -1,18 +1,11 @@
 package org.engine.process.performance.utils;
  
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat; 
-import java.util.Arrays;
-import java.util.Date; 
 import java.util.Random;
  
-
 public class Utils {
 
 	private static Random random;
-	private String seperator = ",";
-	private String endl = "\n";
+	private String seperator = ","; 
 	
 
 	static {
@@ -70,95 +63,6 @@ public class Utils {
 		double squareRoot = Math.sqrt(AverageX); 
 
 		return squareRoot;
-	} 
-	
-	
- 
-	public String createCsvFileDataInRows(double[] rowDataToSourceDiffTimeArray,
-			double[] sourceToUpdateDiffTimeArray, double[] totalDiffTimeArray,String sourceName) {
-	 
-		StringBuffer output = new StringBuffer(); 
-		output.append("DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(getLine(rowDataToSourceDiffTimeArray)).append("\n");
-		output.append("DiffTime between <"+sourceName+"> and <update>").append(getLine(sourceToUpdateDiffTimeArray)).append("\n");
-		output.append("Total DiffTime").append(getLine(totalDiffTimeArray)).append("\n");
-		
-		return output.toString();
-			
- 
-	}
- 	
-	public String createCsvFileDataInColumns(double[] rowDataToSourceDiffTimeCreateArray,double[] sourceToUpdateDiffTimeCreateArray, double[] totalDiffTimeCreateArray,
-							double[] rowDataToSourceDiffTimeUpdateArray,double[] sourceToUpdateDiffTimeUpdateArray, double[] totalDiffTimeUpdateArray,String sourceName) {
-	 
-		StringBuffer output = new StringBuffer(); 
-		
-		
-		output.append("CREATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
-		output.append("CREATE - DiffTime between <"+sourceName+"> and <update>").append(seperator); 
-		output.append("UPDATE - DiffTime between between <"+sourceName+"-row-data> and <"+sourceName+">").append(seperator);
-		output.append("UPDATE - DiffTime between <"+sourceName+"> and <update>").append("\n"); 
-		int[] maxArray = new int[]{rowDataToSourceDiffTimeCreateArray.length,sourceToUpdateDiffTimeCreateArray.length,
-								  rowDataToSourceDiffTimeUpdateArray.length,sourceToUpdateDiffTimeUpdateArray.length};
-		 
-		Arrays.sort(maxArray);
-		int max = maxArray[maxArray.length - 1];
-		
-		for( int i = 0; i < max; i++) {
-			
-			if( i < rowDataToSourceDiffTimeCreateArray.length ) {
-				output.append(rowDataToSourceDiffTimeCreateArray[i]).append(seperator);
-			}
-			else {
-				output.append("").append(seperator);
-			}
-			if( i < sourceToUpdateDiffTimeCreateArray.length ) {
-				output.append(sourceToUpdateDiffTimeCreateArray[i]).append(seperator);
-			}
-			else {
-				output.append("").append(seperator);
-			} 
-			if( i < rowDataToSourceDiffTimeUpdateArray.length ) {
-				output.append(rowDataToSourceDiffTimeUpdateArray[i]).append(seperator);
-			}
-			else {
-				output.append("").append(seperator);
-			}
-			if( i < sourceToUpdateDiffTimeUpdateArray.length ) {
-				output.append(sourceToUpdateDiffTimeUpdateArray[i]).append(endl);
-			}
-			else {
-				output.append("").append(endl);
-			} 
-		} 
-		
-		return output.toString();
-			
- 
-	}
-	 
-	private String getLine(double[] array) {
-		
-		StringBuffer output = new StringBuffer();
-		for(double d : array ) 
-		{
-			output.append(seperator).append(d);
-		}
-		
-		return output.toString();
-		
-	}
-	
-	public void printToFile(String output, String fileLocation)   {
-		 
-		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
-		{
-			fw.write(output+"\n");	 
-		} catch (IOException e) {
-			 
-			e.printStackTrace();
-		}
-	}
-
+	}  
 
 }

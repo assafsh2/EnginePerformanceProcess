@@ -1,13 +1,14 @@
 package org.engine.process.performance;
+ 
+import java.io.IOException; 
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import joptsimple.internal.Strings;
 
-import org.engine.process.performance.multi.EngingPerformanceMultiPeriods; 
+import org.apache.log4j.Level; 
+import org.apache.log4j.Logger; 
+import org.engine.process.performance.multi.EngingPerformanceMultiCycles; 
 import org.engine.process.performance.utils.InnerService;
+
 
 /**
  * @author assafsh
@@ -16,7 +17,15 @@ import org.engine.process.performance.utils.InnerService;
 
 public class Main {
 
+	final static public Logger logger = Logger.getLogger(Main.class);
+	
+	static {
+		
+		setDebugLevel(System.getenv("DEBUG_LEVEL"));
+	}
+
 	public static void main(String[] args) throws InterruptedException, IOException {
+
 
 		String kafkaAddress = System.getenv("KAFKA_ADDRESS");
 		String schemaRegistryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
@@ -26,31 +35,34 @@ public class Main {
 		String fileLocation = System.getenv("FILE_LOCATION");		
 		String secToDelay = System.getenv("SEC_TO_DELAY");
 		String multiMessages = System.getenv("MULTI_MESSAGES");
+		String debugLevel = System.getenv("DEBUG_LEVEL");
 
-		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
-		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
-		System.out.println("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
-		System.out.println("SOURCE_NAME::::::::" + sourceName);
-		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
-		System.out.println("FILE_LOCATION::::::::" + fileLocation);
-		System.out.println("SEC_TO_DELAY::::::::" + secToDelay);
-		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 		
+		logger.debug("KAFKA_ADDRESS::::::::" + kafkaAddress);
+		logger.debug("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
+		logger.debug("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
+		logger.debug("SOURCE_NAME::::::::" + sourceName);
+		logger.debug("PRINT_TO_FILE::::::::" + printToFile);
+		logger.debug("FILE_LOCATION::::::::" + fileLocation);
+		logger.debug("SEC_TO_DELAY::::::::" + secToDelay);
+		logger.debug("MULTI_MESSAGES::::::::" + multiMessages); 
+		logger.debug("MULTI_MESSAGES::::::::" + debugLevel); 
 
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
 
+		setDebugLevel(debugLevel);
 		InnerService service;
 
 		if(multiMessages.equalsIgnoreCase("true")) {
-			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
+			service = new EngingPerformanceMultiCycles(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
 		}	
 		else  {
-			service = new EnginePerformanceSingle(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+			service = new EnginePerformanceSingleMessage(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
 		} 
 
 		ServiceStatus status = service.run(); 
 
 		if(status != ServiceStatus.SUCCESS) {	
-			System.out.println(status.getMessage());
+			logger.error(status.getMessage());
 			System.exit(-1);
 		}		 
 
@@ -58,35 +70,36 @@ public class Main {
 
 		if(printToFile.equalsIgnoreCase("true")) {
 
-			printToFile(service.getOutputToFile(),fileLocation);
+			service.printOutputToFile(fileLocation);
 
 		} 
 
-		System.out.println("END!");
-	}
+		logger.debug("END!");
+	} 
 
-	public static void printToFile(String output, String fileLocation) throws IOException {
+	private static void setDebugLevel(String debugLevel) {
 
-		if(fileLocation == null || fileLocation.isEmpty()) {
-			fileLocation = System.getenv("HOME");
-		} 
-		
-		File dir = new File(fileLocation);
-		if( !dir.exists()) {
-			dir.mkdir();
-		} 
-		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		String fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".csv";
-		System.out.println("Create output file in: "+fileName);
-		File file = new File(fileName);
-		file.createNewFile();	
-		
- 		try( FileWriter fw = new FileWriter(file))
-		{
-			fw.write(output+"\n");	 
+
+		if( Strings.isNullOrEmpty(debugLevel)) {
+			debugLevel = "ERROR";
 		}
-	}
 
+		switch (debugLevel) {
 
-
+		case "ALL":
+			logger.setLevel(Level.ALL);
+			break;
+		case "DEBUG":
+			logger.setLevel(Level.DEBUG);
+			break;
+		case "ERROR":
+			logger.setLevel(Level.ERROR);
+			break;
+		case "WARNING":
+			logger.setLevel(Level.WARN); 
+			break;
+		default:
+			logger.setLevel(Level.ALL);
+		} 
+	} 
 }
