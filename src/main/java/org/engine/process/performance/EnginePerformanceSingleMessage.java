@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;  
 import java.util.List;
-import java.util.Map;
-import java.util.Random;  
+import java.util.Map; 
 import java.util.stream.Collectors;
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
@@ -27,7 +26,7 @@ import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.engine.process.performance.utils.InnerService;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -42,13 +41,18 @@ import java.util.Properties;
  * Jul 2017
  * 
  * The class will check the performance of the engine by create messages to topics
- * sourceName-row-data
+ * sourceName-raw-data
  * update
  * get the message timestamp and compare
+ * 
+ * Sep 2017
+ * 
+ * The class send only one single message and print the time of processing 
+ * We used that class for initial implementation and not using it anymore 
  *
  */
 
-public class EnginePerformanceFromBeginning extends InnerService {
+public class EnginePerformanceSingleMessage extends InnerService {
 
 	private StringBuffer output = new StringBuffer();
 	private String externalSystemID;	
@@ -60,9 +64,9 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	private SchemaRegistryClient schemaRegistry = null;
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
-	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
+	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>(); 
 
-	public EnginePerformanceFromBeginning(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
+	public EnginePerformanceSingleMessage(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
 
 		this.kafkaAddress = kafkaAddress;
 		this.schemaRegustryUrl = schemaRegustryUrl;
@@ -101,23 +105,23 @@ public class EnginePerformanceFromBeginning extends InnerService {
 	@Override
 	public ServiceStatus execute() throws IOException, RestClientException {
 		externalSystemID = utils.randomExternalSystemID();
-		System.out.println("After random "+externalSystemID); 
+		logger.debug("After random "+externalSystemID); 
 		
-		System.out.println("Create message with KafkaConsumer");
+		logger.debug("Create message with KafkaConsumer");
 		output.append("Create a new entity").append(endl);
 		output.append("===================").append(endl);
 		handleMessage("44.9","95.8");
 		Pair<Long,Long> diffTime = getTimeDifferences("44.9", "95.8");
-		output.append("The create action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
+		output.append("The create action between topics  <"+sourceName+"-raw-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
 		output.append("The create action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl).append(endl);
 		
 		
-		System.out.println("Update message with KafkaConsumer");
+		logger.debug("Update message with KafkaConsumer");
 		output.append("Update the entity").append(endl);
 		output.append("=================").append(endl);
 		handleMessage("34.66","48.66");		
 		diffTime = getTimeDifferences("34.66","48.66");
-		output.append("The update action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
+		output.append("The update action between topics  <"+sourceName+"-raw-data> and <"+sourceName+"> took "+diffTime.second() +" millisec").append(endl);
 		output.append("The update action between topics  <"+sourceName+"> and <update> took "+diffTime.first() +" millisec").append(endl);
 		
 		return ServiceStatus.SUCCESS;
@@ -301,13 +305,13 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		}
 	
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic update: "+update.toString());
+		logger.debug("====Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic source: "+source.toString());
-		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
+		logger.debug("====Consumer from topic source: "+source.toString());
+		Pair<String,Long> rawData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
+		logger.debug("====Consumer from topic "+sourceName+"-raw-data: "+rawData.toString());
 
-		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
+		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rawData.second());	
 	}
 
 	private void registerSchemas(SchemaRegistryClient schemaRegistry) throws IOException, RestClientException {
@@ -352,9 +356,7 @@ public class EnginePerformanceFromBeginning extends InnerService {
 						+ "{\"name\": \"height\",\"type\": \"double\"},"
 						+ "{\"name\": \"nickname\",\"type\": \"string\"},"
 						+ "{\"name\": \"externalSystemID\",\"type\": \"string\",\"doc\" : \"This is ID given be external system.\"}"
-						+ "]}"));
-
-
+						+ "]}")); 
 	}
 
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
@@ -364,4 +366,11 @@ public class EnginePerformanceFromBeginning extends InnerService {
 		
 		return map;
 	}
+
+	@Override
+	public void printOutputToFile(String fileLocation) { 
+		
+		logger.error("Ussuported operation - create output file");
+	}
+	
  }

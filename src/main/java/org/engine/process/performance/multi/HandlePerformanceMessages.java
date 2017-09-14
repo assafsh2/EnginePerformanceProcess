@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;  
 import java.util.stream.Collectors;
- 
-
 
 import org.apache.avro.generic.GenericRecord; 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -24,6 +22,8 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
+import org.apache.log4j.Logger;
+import org.engine.process.performance.Main;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -37,7 +37,7 @@ import java.util.Properties;
  * Jul 2017
  * 
  * The class will check the performance of the engine by create messages to topics
- * sourceName-row-data
+ * sourceName-raw-data
  * update
  * get the message timestamp and compare
  *
@@ -56,7 +56,10 @@ public class HandlePerformanceMessages {
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
 	private long lastOffsetForRawData;
 	private long lastOffsetForUpdate;
-	private long lastOffsetForSource;
+	private long lastOffsetForSource;	
+	private Pair<Long,Long> timeDifferences;
+	private Logger logger = Main.logger;
+	
 	public long getLastOffsetForRawData() {
 		return lastOffsetForRawData;
 	}
@@ -246,7 +249,7 @@ public class HandlePerformanceMessages {
 		}
 	}
 
-	public Pair<Long,Long> getTimeDifferences() throws Exception {
+	public void callConsumer() throws Exception {
 
 		consumer.seek(partitionRawData, lastOffsetForRawData);
 		callConsumersWithKafkaConsuemr(consumer);
@@ -258,14 +261,20 @@ public class HandlePerformanceMessages {
 		callConsumersWithKafkaConsuemr(consumer3);
 		
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic update: "+update.toString());
+		logger.debug("====Consumer from topic update: "+update.toString());
 		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic source: "+source.toString());
+		logger.debug("====Consumer from topic source: "+source.toString());
 		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
-		System.out.println("====Consumer from topic "+sourceName+"-row-data: "+rowData.toString());
-
-		return new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
+		logger.debug("====Consumer from topic "+sourceName+"-raw-data: "+rowData.toString());
+		
+		timeDifferences = new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
 	} 
+	
+	
+	public Pair<Long,Long> getTimeDifferences() throws Exception {
+		
+		return timeDifferences; 
+	}	
 	
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		

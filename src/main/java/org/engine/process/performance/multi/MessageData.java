@@ -2,13 +2,16 @@ package org.engine.process.performance.multi;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+import org.engine.process.performance.Main;
+
 public class MessageData {
 	
 	private final Date startTime;
 	private final String externalSystemID;
 	private final String lat;
 	private final String longX;
-	private long rowDataToSourceDiffTime;
+	private long rawDataToSourceDiffTime;
 	private long sourceToUpdateDiffTime;
 	private String endl = "\n";
 	private String sourceName;
@@ -18,6 +21,7 @@ public class MessageData {
 	private long lastOffsetForSource;
 	private int numOfCycle;
 	private int numOfUpdate;
+	private Logger logger = Main.logger;
 
 	public MessageData(Date startTime,String externalSystemID, String lat, String longX,String sourceName, HandlePerformanceMessages handlePerformanceMessages) {
 	 
@@ -29,12 +33,12 @@ public class MessageData {
 		this.handlePerformanceMessages = handlePerformanceMessages;
 	} 
 
-	public long getRowDataToSourceDiffTime() {
-		return rowDataToSourceDiffTime;
+	public long getRawDataToSourceDiffTime() {
+		return rawDataToSourceDiffTime;
 	}
 
-	public void setRowDataToSourceDiffTime(long rowDataToSourceDiffTime) {
-		this.rowDataToSourceDiffTime = rowDataToSourceDiffTime;
+	public void setRawDataToSourceDiffTime(long rawDataToSourceDiffTime) {
+		this.rawDataToSourceDiffTime = rawDataToSourceDiffTime;
 	}
 
 	public long getSourceToUpdateDiffTime() {
@@ -56,11 +60,17 @@ public class MessageData {
 		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
 		stringBuffer.append("lat: "+lat).append(endl);
 		stringBuffer.append("longX: "+longX).append(endl);
-		if( rowDataToSourceDiffTime > 0 ) {
+		if(rawDataToSourceDiffTime < 0 || sourceToUpdateDiffTime < 0 ) {
+			
+			logger.error("Error - The clock is not syncronized between hosts rawDataToSourceDiffTime "+rawDataToSourceDiffTime+" sourceToUpdateDiffTime "+sourceToUpdateDiffTime);
+			return null;
+			
+		}
+		if( rawDataToSourceDiffTime >= 0 && sourceToUpdateDiffTime >= 0) {
 			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
 			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	
 			stringBuffer.append("lastOffsetForUpdate: "+lastOffsetForUpdate).append(endl);
-			stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rowDataToSourceDiffTime +" millisec").append(endl);
+			stringBuffer.append("The action between topics  <"+sourceName+"-raw-data> and <"+sourceName+"> took "+ rawDataToSourceDiffTime +" millisec").append(endl);
 			stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
 		}
 	    return stringBuffer.toString();

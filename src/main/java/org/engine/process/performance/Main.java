@@ -1,13 +1,14 @@
 package org.engine.process.performance;
+ 
+import java.io.IOException; 
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import joptsimple.internal.Strings;
 
-import org.engine.process.performance.multi.EngingPerformanceMultiPeriods;
-import org.engine.process.performance.multi.HandlePerformanceMessages;
+import org.apache.log4j.Level; 
+import org.apache.log4j.Logger; 
+import org.engine.process.performance.multi.EngingPerformanceMultiCycles; 
 import org.engine.process.performance.utils.InnerService;
+
 
 /**
  * @author assafsh
@@ -16,68 +17,98 @@ import org.engine.process.performance.utils.InnerService;
 
 public class Main {
 
+	final static public Logger logger = Logger.getLogger(Main.class);
+	
+	static {
+		
+		setDebugLevel(System.getenv("DEBUG_LEVEL"));
+	}
+
 	public static void main(String[] args) throws InterruptedException, IOException {
-		 
+
+
 		String kafkaAddress = System.getenv("KAFKA_ADDRESS");
 		String schemaRegistryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
 		String schemaRegistryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
 		String sourceName = System.getenv("SOURCE_NAME");
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");		
-		String secToDelay = System.getenv("SEC_TO_DELAY"); 
-		String startFromBeginning = System.getenv("START_FROM_BEGINNING"); 
+		String secToDelay = System.getenv("SEC_TO_DELAY");
 		String multiMessages = System.getenv("MULTI_MESSAGES");
-				 
-		System.out.println("KAFKA_ADDRESS::::::::" + kafkaAddress);
-		System.out.println("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
-		System.out.println("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
-		System.out.println("SOURCE_NAME::::::::" + sourceName);
-		System.out.println("PRINT_TO_FILE::::::::" + printToFile);
-		System.out.println("FILE_LOCATION::::::::" + fileLocation);
-		System.out.println("SEC_TO_DELAY::::::::" + secToDelay); 
-		System.out.println("START_FROM_BEGINNING::::::::" + startFromBeginning); 
-		System.out.println("MULTI_MESSAGES::::::::" + multiMessages); 
-		
+		String debugLevel = System.getenv("DEBUG_LEVEL");
+
+		logger.debug("KAFKA_ADDRESS::::::::" + kafkaAddress);
+		logger.debug("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
+		logger.debug("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
+		logger.debug("SOURCE_NAME::::::::" + sourceName);
+		logger.debug("PRINT_TO_FILE::::::::" + printToFile);
+		logger.debug("FILE_LOCATION::::::::" + fileLocation);
+		logger.debug("SEC_TO_DELAY::::::::" + secToDelay);
+		logger.debug("MULTI_MESSAGES::::::::" + multiMessages); 
+		logger.debug("MULTI_MESSAGES::::::::" + debugLevel); 
+
 		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
-		
+
+		setDebugLevel(debugLevel);
 		InnerService service;
-		
+
 		if(multiMessages.equalsIgnoreCase("true")) {
-			service = new EngingPerformanceMultiPeriods(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
+			service = new EngingPerformanceMultiCycles(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
 		}	
-		else if(startFromBeginning.equalsIgnoreCase("true")) {
-			service = new EnginePerformanceFromBeginning(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		}
-		else {
-			service = new EnginePerformance(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		}
-			 
- 
-		ServiceStatus status = service.run();
-		System.out.println(status.getMessage());
-		
-		if(status != ServiceStatus.SUCCESS)
+		else  {
+			service = new EnginePerformanceSingleMessage(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
+		} 
+
+		ServiceStatus status = service.run(); 
+
+		if(status != ServiceStatus.SUCCESS) {	
+			logger.error(status.getMessage());
 			System.exit(-1);
-		
+		}		 
+
+		logger.info(service.getOutput());
+
 		if(printToFile.equalsIgnoreCase("true")) {
-			
-			printToFile(service.getOutput(),fileLocation);
-			
+
+			service.printOutputToFile(fileLocation);
+		} 
+
+		logger.info("END!");
+	} 
+
+	/**
+	 * The option are - 
+	 * Trace < Debug < Info < Warn < Error < Fatal. 
+	 * Trace is of the lowest priority and Fatal is having highest priority.  
+	 * When we define logger level, anything having higher priority logs are also getting printed
+	 * 
+	 * @param debugLevel
+	 */
+	private static void setDebugLevel(String debugLevel) {
+
+
+		if( Strings.isNullOrEmpty(debugLevel)) {
+			debugLevel = "ALL";
 		}
-		else { 
-				System.out.println(service.getOutput());	 
-		}
-	}
+
+		switch (debugLevel) {
+
+		case "ALL":
+			logger.setLevel(Level.ALL);
+			break;
+		case "DEBUG":
+			logger.setLevel(Level.DEBUG);
+			break;
+		case "ERROR":
+			logger.setLevel(Level.ERROR);
+			break;
+		case "WARNING":
+			logger.setLevel(Level.WARN); 
+			break;
+		default:
+			logger.setLevel(Level.ALL);
+		} 
+	} 
 	
-	public static void printToFile(String output, String fileLocation) throws IOException {
- 
-		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
-		try( FileWriter fw = new FileWriter(fileLocation+"/enginePeformanceResult_"+dateTime+".log"))
-		{
-			fw.write(output+"\n");	 
-		}
-	}
-
-	 
-
+	
 }
