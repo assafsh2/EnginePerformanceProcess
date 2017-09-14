@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.log4j.Logger;
-import org.engine.process.performance.Main;
 import org.engine.process.performance.ServiceStatus;
 import org.engine.process.performance.csv.CsvFileWriter;
 import org.engine.process.performance.csv.CsvRecordForCreate;
@@ -30,8 +28,7 @@ public class EngingPerformanceMultiCycles extends InnerService {
 	private String sourceName; 
 	private int num_of_cycles;
 	private int num_of_updates_per_cycle;
-	private String endl = "\n";
-	private Logger logger = Main.logger;	 
+	private String endl = "\n";  
 
 	private TopicTimeData<double[]> createAndUpdateArray;
 	private TopicTimeData<double[]> createArray;

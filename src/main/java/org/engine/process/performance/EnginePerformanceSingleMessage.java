@@ -26,8 +26,7 @@ import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.log4j.Logger;
+import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.engine.process.performance.utils.InnerService;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -65,8 +64,7 @@ public class EnginePerformanceSingleMessage extends InnerService {
 	private SchemaRegistryClient schemaRegistry = null;
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
-	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>();
-	private Logger logger = Main.logger;
+	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>(); 
 
 	public EnginePerformanceSingleMessage(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
 
@@ -372,7 +370,7 @@ public class EnginePerformanceSingleMessage extends InnerService {
 	@Override
 	public void printOutputToFile(String fileLocation) { 
 		
-		System.out.print("Ussuported operation - create output file");
+		logger.error("Ussuported operation - create output file");
 	}
 	
  }

@@ -66,22 +66,29 @@ public class Main {
 			System.exit(-1);
 		}		 
 
-		System.out.println(service.getOutput());
+		logger.info(service.getOutput());
 
 		if(printToFile.equalsIgnoreCase("true")) {
 
 			service.printOutputToFile(fileLocation);
-
 		} 
 
-		logger.debug("END!");
+		logger.info("END!");
 	} 
 
+	/**
+	 * The option are - 
+	 * Trace < Debug < Info < Warn < Error < Fatal. 
+	 * Trace is of the lowest priority and Fatal is having highest priority.  
+	 * When we define logger level, anything having higher priority logs are also getting printed
+	 * 
+	 * @param debugLevel
+	 */
 	private static void setDebugLevel(String debugLevel) {
 
 
 		if( Strings.isNullOrEmpty(debugLevel)) {
-			debugLevel = "ERROR";
+			debugLevel = "ALL";
 		}
 
 		switch (debugLevel) {
@@ -102,4 +109,6 @@ public class Main {
 			logger.setLevel(Level.ALL);
 		} 
 	} 
+	
+	
 }

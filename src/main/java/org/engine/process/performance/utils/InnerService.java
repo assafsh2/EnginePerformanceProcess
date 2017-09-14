@@ -1,6 +1,9 @@
 package org.engine.process.performance.utils;
 
+import org.apache.log4j.Logger;
+import org.engine.process.performance.Main;
 import org.engine.process.performance.ServiceStatus;
+ 
 
 public abstract class InnerService {
 
@@ -9,6 +12,7 @@ public abstract class InnerService {
 	abstract protected ServiceStatus execute() throws Exception;
 	abstract public String getOutput();
 	abstract public void printOutputToFile(String fileLocation);
+	protected Logger logger = Main.logger;
 	
 	protected Utils utils = new Utils();
 
@@ -22,8 +26,8 @@ public abstract class InnerService {
 			return ServiceStatus.SUCCESS;
 		}
 		catch(Exception e) {
-			System.out.println(e.getStackTrace());
-			System.out.println(e.getMessage());
+			logger.error(e.getStackTrace());
+			logger.error(e.getMessage());
 			return ServiceStatus.FAILURE;
 		} 
 	}  

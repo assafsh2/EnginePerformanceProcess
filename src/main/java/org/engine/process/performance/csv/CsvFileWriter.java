@@ -11,10 +11,13 @@ import java.util.function.Consumer;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.log4j.Logger;
+import org.engine.process.performance.Main;
 
 public class CsvFileWriter {
 
 	private String fileName; 
+	private Logger logger = Main.logger;
 	
 	public CsvFileWriter(String fileLocation) {
 		
@@ -29,7 +32,7 @@ public class CsvFileWriter {
 		
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
 		fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".csv";
-		System.out.println("Output file is: "+fileName); 
+		logger.info("Output file is: "+fileName); 
 
 	}
 
