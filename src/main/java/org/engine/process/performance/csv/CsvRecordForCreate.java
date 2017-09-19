@@ -7,7 +7,7 @@ package org.engine.process.performance.csv;
  * Create\Update message
  *
  */
-public class CsvRecordForCreate {
+public class CsvRecordForCreate implements CsvRecord {
 	
 	private TopicTimeData<String> createAction;
 	private TopicTimeData<String> updateAction;	
@@ -36,6 +36,7 @@ public class CsvRecordForCreate {
 				+ ", updateAction=" + updateAction + "]";
 	}
 	
+	@Override
 	public Object[] toObjectArray() {
 		
 		Object[] obj = new Object[createAction.toObjectArray().length+updateAction.toObjectArray().length];

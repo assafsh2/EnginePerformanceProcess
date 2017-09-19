@@ -1,14 +1,14 @@
 package org.engine.process.performance;
- 
-import java.io.IOException; 
 
-import joptsimple.internal.Strings;
+import java.io.IOException;
 
-import org.apache.log4j.Level; 
 import org.apache.log4j.Logger; 
-import org.engine.process.performance.multi.EngingPerformanceMultiCycles; 
+import org.engine.process.performance.activity.create.CreateActivityMultiMessages;
+import org.engine.process.performance.activity.merge.MergeActivityMultiMessages;
+import org.engine.process.performance.utils.EventType;
 import org.engine.process.performance.utils.InnerService;
-
+import org.engine.process.performance.utils.ServiceStatus;
+import org.engine.process.performance.utils.Utils;
 
 /**
  * @author assafsh
@@ -17,98 +17,73 @@ import org.engine.process.performance.utils.InnerService;
 
 public class Main {
 
-	final static public Logger logger = Logger.getLogger(Main.class);
+	public static boolean testing = true;
 	
+	final static public Logger logger = Logger.getLogger(Main.class);
+
 	static {
-		
-		setDebugLevel(System.getenv("DEBUG_LEVEL"));
+
+		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
 	}
 
-	public static void main(String[] args) throws InterruptedException, IOException {
+	public static void main(String[] args) throws InterruptedException,
+			IOException {
+		
+		if(testing) {
+		 
+		}
 
-
-		String kafkaAddress = System.getenv("KAFKA_ADDRESS");
-		String schemaRegistryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
-		String schemaRegistryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
-		String sourceName = System.getenv("SOURCE_NAME");
 		String printToFile = System.getenv("PRINT_TO_FILE");
-		String fileLocation = System.getenv("FILE_LOCATION");		
-		String secToDelay = System.getenv("SEC_TO_DELAY");
-		String multiMessages = System.getenv("MULTI_MESSAGES");
+		String fileLocation = System.getenv("FILE_LOCATION");
+		String secToDelay = System.getenv("SEC_TO_DELAY"); 
 		String debugLevel = System.getenv("DEBUG_LEVEL");
+		String activity = System.getenv("ACTIVITY");
+		
+		if(testing) {			
+			printToFile = "false";
+			activity = "MERGE";
+		}
 
-		logger.debug("KAFKA_ADDRESS::::::::" + kafkaAddress);
-		logger.debug("SCHEMA_REGISTRY_ADDRESS::::::::" + schemaRegistryUrl); 
-		logger.debug("SCHEMA_REGISTRY_IDENTITY::::::::" + schemaRegistryIdentity);
-		logger.debug("SOURCE_NAME::::::::" + sourceName);
 		logger.debug("PRINT_TO_FILE::::::::" + printToFile);
 		logger.debug("FILE_LOCATION::::::::" + fileLocation);
 		logger.debug("SEC_TO_DELAY::::::::" + secToDelay);
-		logger.debug("MULTI_MESSAGES::::::::" + multiMessages); 
-		logger.debug("MULTI_MESSAGES::::::::" + debugLevel); 
+		logger.debug("DEBUG_LEVEL::::::::" + debugLevel);
+		logger.debug("ACTIVITY::::::::" + activity);
 
-		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay))*1000);
+		Thread.sleep((secToDelay == null ? 0 : Long.parseLong(secToDelay)) * 1000);
 
-		setDebugLevel(debugLevel);
-		InnerService service;
+		InnerService service = null;
 
-		if(multiMessages.equalsIgnoreCase("true")) {
-			service = new EngingPerformanceMultiCycles(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);	
-		}	
-		else  {
-			service = new EnginePerformanceSingleMessage(kafkaAddress,schemaRegistryUrl,schemaRegistryIdentity,sourceName);
-		} 
+		switch (EventType.valueOf(activity)) {
 
-		ServiceStatus status = service.run(); 
+		case CREATE:
+			service = new CreateActivityMultiMessages();
+			break;
+		case MERGE:
+			service = new MergeActivityMultiMessages();
+			break;
+		case SPLIT:
 
-		if(status != ServiceStatus.SUCCESS) {	
+			break;
+		default:
+			logger.error("Activity " + activity + " is not supported");
+			System.exit(-1);
+		}
+
+		ServiceStatus status = service.run();
+
+		if (status != ServiceStatus.SUCCESS) {
 			logger.error(status.getMessage());
 			System.exit(-1);
-		}		 
+		}
 
 		logger.info(service.getOutput());
 
-		if(printToFile.equalsIgnoreCase("true")) {
+		if (printToFile.equalsIgnoreCase("true")) {
 
 			service.printOutputToFile(fileLocation);
-		} 
-
-		logger.info("END!");
-	} 
-
-	/**
-	 * The option are - 
-	 * Trace < Debug < Info < Warn < Error < Fatal. 
-	 * Trace is of the lowest priority and Fatal is having highest priority.  
-	 * When we define logger level, anything having higher priority logs are also getting printed
-	 * 
-	 * @param debugLevel
-	 */
-	private static void setDebugLevel(String debugLevel) {
-
-
-		if( Strings.isNullOrEmpty(debugLevel)) {
-			debugLevel = "ALL";
 		}
 
-		switch (debugLevel) {
-
-		case "ALL":
-			logger.setLevel(Level.ALL);
-			break;
-		case "DEBUG":
-			logger.setLevel(Level.DEBUG);
-			break;
-		case "ERROR":
-			logger.setLevel(Level.ERROR);
-			break;
-		case "WARNING":
-			logger.setLevel(Level.WARN); 
-			break;
-		default:
-			logger.setLevel(Level.ALL);
-		} 
-	} 
-	
-	
+		logger.info("END!");
+	}
 }

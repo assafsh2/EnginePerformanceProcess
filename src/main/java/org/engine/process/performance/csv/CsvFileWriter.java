@@ -33,10 +33,9 @@ public class CsvFileWriter {
 		String dateTime = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
 		fileName = fileLocation+"/enginePeformanceResult_"+dateTime+".csv";
 		logger.info("Output file is: "+fileName); 
-
 	}
 
-	public void writeCsvFile(List<String> header,Object[] columnsName,List<CsvRecordForCreate> data) {
+	public void writeCsvFile(List<String> header,Object[] columnsName,List<? extends CsvRecord> data) {
 
 		CSVFormat csvFileFormat =  CSVFormat.EXCEL;
 		
@@ -53,12 +52,12 @@ public class CsvFileWriter {
 		}
 	}  
 	
-	private Consumer<CsvRecordForCreate> getConsumer(CSVPrinter csvFilePrinter) {
+	private Consumer<CsvRecord> getConsumer(CSVPrinter csvFilePrinter) {
 
-		Consumer<CsvRecordForCreate> consumer = new Consumer<CsvRecordForCreate> () {
+		Consumer<CsvRecord> consumer = new Consumer<CsvRecord> () {
 
 			@Override
-			public void accept(CsvRecordForCreate record) {
+			public void accept(CsvRecord record) {
 
 				try {
 					csvFilePrinter.printRecord(record.toObjectArray());

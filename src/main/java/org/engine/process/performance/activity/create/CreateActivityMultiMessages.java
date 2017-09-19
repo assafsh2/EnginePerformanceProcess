@@ -1,4 +1,4 @@
-package org.engine.process.performance.multi;
+package org.engine.process.performance.activity.create;
 
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 
@@ -11,57 +11,37 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.engine.process.performance.ServiceStatus;
+import org.apache.log4j.Logger; 
 import org.engine.process.performance.csv.CsvFileWriter;
 import org.engine.process.performance.csv.CsvRecordForCreate;
 import org.engine.process.performance.csv.TopicTimeData;
-import org.engine.process.performance.utils.InnerService; 
+import org.engine.process.performance.utils.InnerService;  
+import org.engine.process.performance.utils.Pair;
+import org.engine.process.performance.utils.ServiceStatus;
+import org.engine.process.performance.utils.SingleCycle;
+import org.engine.process.performance.utils.SingleMessageData;
+import org.engine.process.performance.utils.MessageConsumerThread;
+import org.engine.process.performance.utils.Utils;
 
-import akka.japi.Pair;
-
-public class EngingPerformanceMultiCycles extends InnerService {
-
-	private List<SingleCycle> cyclesList;
-	private StringBuffer output = new StringBuffer();
-	private String kafkaAddress;
-	private String schemaRegustryUrl;  
-	private String sourceName; 
-	private int num_of_cycles;
-	private int num_of_updates_per_cycle;
-	private String endl = "\n";  
+public class CreateActivityMultiMessages extends InnerService {
 
 	private TopicTimeData<double[]> createAndUpdateArray;
 	private TopicTimeData<double[]> createArray;
 	private TopicTimeData<double[]> updateArray; 
-	
-	private int interval;
-	private int durationInMin; 
-	private int numOfInteraces;
-	private int numOfUpdates;
 	private String seperator = ",";
 	private String emptyString = "";
 	
-	public EngingPerformanceMultiCycles(String kafkaAddress,
-			String schemaRegistryUrl, String schemaRegistryIdentity,String sourceName) {
+	final static public Logger logger = Logger.getLogger(CreateActivityMultiMessages.class);
+	static {
 
-		this.kafkaAddress = kafkaAddress; 
-		this.sourceName = sourceName;
-		this.schemaRegustryUrl = schemaRegistryUrl;
+		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+	}
+	
+	public CreateActivityMultiMessages() {
+
+		super(); 
 		cyclesList = Collections.synchronizedList(new ArrayList<SingleCycle>());	
-
-		logger.debug("NUM_OF_CYCLES::::::::" + System.getenv("NUM_OF_CYCLES")); 
-		logger.debug("NUM_OF_UPDATES_PER_CYCLE::::::::" + System.getenv("NUM_OF_UPDATES_PER_CYCLE")); 
-		logger.debug("DURATION (in Minute)::::::::" + System.getenv("DURATION")); 
-		logger.debug("INTERVAL::::::::" + System.getenv("INTERVAL")); 
-		logger.debug("NUM_OF_INTERFACES::::::::" + System.getenv("NUM_OF_INTERFACES")); 
-		logger.debug("NUM_OF_UPDATES::::::::" + System.getenv("NUM_OF_UPDATES")); 
-
-		num_of_cycles = Integer.parseInt(System.getenv("NUM_OF_CYCLES"));
-		num_of_updates_per_cycle = Integer.parseInt(System.getenv("NUM_OF_UPDATES_PER_CYCLE")); 
-		interval = Integer.parseInt(System.getenv("INTERVAL"));
-		durationInMin = Integer.parseInt(System.getenv("DURATION"));	
-		numOfInteraces = Integer.parseInt(System.getenv("NUM_OF_INTERFACES"));
-		numOfUpdates = Integer.parseInt(System.getenv("NUM_OF_UPDATES")); 
+ 
 	}
 
 	@Override
@@ -74,9 +54,9 @@ public class EngingPerformanceMultiCycles extends InnerService {
 
 		logger.debug("===postExecute");
 
-		createAndUpdateArray = new TopicTimeData<double[]>(new double[num_of_cycles*num_of_updates_per_cycle],new double[num_of_cycles*num_of_updates_per_cycle]);
-		createArray = new TopicTimeData<double[]>(new double[num_of_cycles],new double[num_of_cycles]);
-		updateArray = new TopicTimeData<double[]>(new double[num_of_cycles*(num_of_updates_per_cycle-1)],new double[num_of_cycles*(num_of_updates_per_cycle-1)]);
+		createAndUpdateArray = new TopicTimeData<double[]>(new double[numOfCycles*numOfUpdatesPerCycle],new double[numOfCycles*numOfUpdatesPerCycle]);
+		createArray = new TopicTimeData<double[]>(new double[numOfCycles],new double[numOfCycles]);
+		updateArray = new TopicTimeData<double[]>(new double[numOfCycles*(numOfUpdatesPerCycle-1)],new double[numOfCycles*(numOfUpdatesPerCycle-1)]);
 
 		int i = 0;
 		int index = 0;
@@ -85,30 +65,33 @@ public class EngingPerformanceMultiCycles extends InnerService {
 		for(SingleCycle cycle : cyclesList ) {
 			logger.debug("Cycle "+i);
 			int j = 0;
-			for( MessageData messageData : cycle.getMessageDataList()) {
+			for( SingleMessageData messageData : cycle.getMessageDataList()) {
+				
+				CreateMessageData createMessageData = (CreateMessageData) messageData;
 
-				logger.debug("\nUpdate "+j);				
-				Pair<Long,Long> diffTime = messageData.getHandlePerformanceMessages().getTimeDifferences();
-				messageData.setRawDataToSourceDiffTime(diffTime.second());
-				messageData.setSourceToUpdateDiffTime(diffTime.first());
-				createAndUpdateArray.getRawDataToSource()[index] = (double) diffTime.second();
-				createAndUpdateArray.getSourceToUpdate()[index] = (double)diffTime.first(); 
+				logger.debug("\nUpdate "+j);
+				CreateActivityConsumer createActivityConsumer = (CreateActivityConsumer) createMessageData.getActivityConsumer();
+				Pair<Long,Long> diffTime = createActivityConsumer.getTimeDifferences();
+				createMessageData.setRawDataToSourceDiffTime(diffTime.getRight());
+				createMessageData.setSourceToUpdateDiffTime(diffTime.getLeft());
+				createAndUpdateArray.getRawDataToSource()[index] = (double) diffTime.getRight();
+				createAndUpdateArray.getSourceToUpdate()[index] = (double)diffTime.getLeft(); 
 
 				if( j == 0 ) {
-					createArray.getRawDataToSource()[index1] = (double) diffTime.second();
-					createArray.getSourceToUpdate()[index1] = (double)diffTime.first();
+					createArray.getRawDataToSource()[index1] = (double) diffTime.getRight();
+					createArray.getSourceToUpdate()[index1] = (double)diffTime.getLeft();
 					index1++;
 				}
 				else {
 					
-					updateArray.getRawDataToSource()[index2] = (double) diffTime.second();
-					updateArray.getSourceToUpdate()[index2] = (double) diffTime.first();
+					updateArray.getRawDataToSource()[index2] = (double) diffTime.getRight();
+					updateArray.getSourceToUpdate()[index2] = (double) diffTime.getLeft();
 					index2++;
 				}
 
-				messageData.setLastOffsetForRawData(messageData.getHandlePerformanceMessages().getLastOffsetForRawData());
-				messageData.setLastOffsetForSource(messageData.getHandlePerformanceMessages().getLastOffsetForSource());
-				messageData.setLastOffsetForUpdate(messageData.getHandlePerformanceMessages().getLastOffsetForUpdate());
+				createMessageData.setLastOffsetForRawData(createActivityConsumer.getLastOffsetForRawData());
+				createMessageData.setLastOffsetForSource(createActivityConsumer.getLastOffsetForSource());
+				createMessageData.setLastOffsetForUpdate(createActivityConsumer.getLastOffsetForUpdate());
 				j++;
 				index++;
 			} 
@@ -119,16 +102,16 @@ public class EngingPerformanceMultiCycles extends InnerService {
 	@Override
 	protected ServiceStatus execute() throws Exception {
 
-		if( durationInMin > 0 && num_of_cycles > 0 ) {
+		if( durationInMin > 0 && numOfCycles > 0 ) {
 
-			logger.debug("Error: Both DURATION and NUM_OF_CYCLE have value"); 
+			logger.error("Error: Both DURATION and NUM_OF_CYCLE have value"); 
 			return ServiceStatus.FAILURE;			
 		}
 
 		ExecutorService executor = Executors.newFixedThreadPool(5);
-		if( num_of_cycles > 0 ) {
+		if( numOfCycles > 0 ) {
 
-			for( int i = 0; i < num_of_cycles; i++ ) {
+			for( int i = 0; i < numOfCycles; i++ ) {
 
 				logger.debug("===>CYCLE " + i); 
 				SingleCycle singlePeriod = runSingleCycle(i); 		
@@ -141,15 +124,15 @@ public class EngingPerformanceMultiCycles extends InnerService {
 
 			long startTime = System.currentTimeMillis();
 			long endTime = startTime + durationInMin * 60000;	 
-			num_of_cycles = 0;
+			numOfCycles = 0;
 			while ( System.currentTimeMillis() < endTime) {
 
-				logger.debug("===>CYCLE " + num_of_cycles);
-				SingleCycle singlePeriod = runSingleCycle(num_of_cycles);
-				cyclesList.add(singlePeriod); 
-				Runnable worker = new MessageConsumerThread(singlePeriod);
+				logger.debug("===>CYCLE " + numOfCycles);
+				SingleCycle singleCycle = runSingleCycle(numOfCycles);
+				cyclesList.add(singleCycle); 
+				Runnable worker = new MessageConsumerThread(singleCycle);
 				executor.execute(worker);
-				num_of_cycles++;				 
+				numOfCycles++;				 
 			} 
 		}
 
@@ -166,10 +149,11 @@ public class EngingPerformanceMultiCycles extends InnerService {
 	@Override
 	public String getOutput() { 
 
+		StringBuffer output = new StringBuffer();		
 		for(SingleCycle period : cyclesList ) {
 
-			for( MessageData messageData : period.getMessageDataList()) {
-
+			for( SingleMessageData messageData : period.getMessageDataList()) { 
+				
 				String msg = messageData.toString();
 				if(msg == null) 
 					return null;
@@ -190,7 +174,7 @@ public class EngingPerformanceMultiCycles extends InnerService {
 
 		output.append("Export to CSV ").append(endl);
 		output.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
-		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdates).append(endl);
+		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdatesPerSec).append(endl);
 		output.append("CREATE").append(endl);
 		output.append(createCsvFileDataInRows(createArray,sourceName)).append(endl);
 		output.append("UPDATE").append(endl);
@@ -206,18 +190,17 @@ public class EngingPerformanceMultiCycles extends InnerService {
 		double lat = 4.3;
 		double longX = 6.4;
 
-		for(int j = 0 ; j < num_of_updates_per_cycle; j++) {
+		for(int j = 0 ; j < numOfUpdatesPerCycle; j++) {
 			logger.debug("UPDATE " + j);
 
 			Date startTime = new Date(System.currentTimeMillis());
 			String latStr = Double.toString(lat);
 			String longXStr = Double.toString(longX);
 
-			HandlePerformanceMessages handlePerformanceMessages = new HandlePerformanceMessages(kafkaAddress,schemaRegustryUrl,
-					sourceName,externalSystemID,latStr,longXStr);					
+			CreateActivityConsumer createActivityConsumer = new CreateActivityConsumer(sourceName,externalSystemID,latStr,longXStr);					
 
-			handlePerformanceMessages.handleMessage(); 
-			MessageData messageData = new MessageData(startTime,externalSystemID,latStr, longXStr, sourceName,handlePerformanceMessages);
+			createActivityConsumer.handleMessage(); 
+			CreateMessageData messageData = new CreateMessageData(startTime,externalSystemID,latStr, longXStr, sourceName,createActivityConsumer);
 			messageData.setNumOfCycle(numOfCycle);
 			messageData.setNumOfUpdate(j);
 			singleCycle.addMessageData(messageData);
@@ -234,13 +217,13 @@ public class EngingPerformanceMultiCycles extends InnerService {
 
 		List<String> header = new ArrayList<String>();
 		header.add("NUM_OF_INTERCAES :"+numOfInteraces);
-		header.add("NUM_OF_UPDATES :"+numOfUpdates); 
+		header.add("NUM_OF_UPDATES :"+numOfUpdatesPerSec); 
 
 		if( durationInMin > 0 ) { 
 			header.add("DURATION(MIN) :"+durationInMin);
 		}
 		else { 
-			header.add("NUM_OF_CYCLES :"+num_of_cycles);
+			header.add("NUM_OF_CYCLES :"+numOfCycles);
 		}
 		header.add("INTERVAL :"+interval); 
 
@@ -271,19 +254,19 @@ public class EngingPerformanceMultiCycles extends InnerService {
 			TopicTimeData<String> update = new TopicTimeData<String>(emptyString,emptyString);
 
 			if( i < createArray.getRawDataToSource().length ) { 
-				create.setRawDataToSource(convertToString(createArray.getRawDataToSource()[i]));
+				create.setRawDataToSource(utils.convertToString(createArray.getRawDataToSource()[i]));
 			}
 
 			if( i < createArray.getSourceToUpdate().length ) {
-				create.setSourceToUpdate(convertToString(createArray.getSourceToUpdate()[i])); 
+				create.setSourceToUpdate(utils.convertToString(createArray.getSourceToUpdate()[i])); 
 			} 
 
 			if( i < updateArray.getRawDataToSource().length ) {
-				update.setRawDataToSource(convertToString(updateArray.getRawDataToSource()[i]));
+				update.setRawDataToSource(utils.convertToString(updateArray.getRawDataToSource()[i]));
 			} 
 
 			if( i < updateArray.getSourceToUpdate().length ) {
-				update.setSourceToUpdate(convertToString(updateArray.getSourceToUpdate()[i])); 
+				update.setSourceToUpdate(utils.convertToString(updateArray.getSourceToUpdate()[i])); 
 			} 
 
 			CsvRecordForCreate record = new CsvRecordForCreate(create,update);
@@ -292,13 +275,7 @@ public class EngingPerformanceMultiCycles extends InnerService {
 
 		return data; 
 	}
-	
-	private String convertToString (double num) {
-		
-		Long d =  new Double(num).longValue();
-		return String.valueOf(d); 
-	}
-	 
+
 	private String createCsvFileDataInRows(TopicTimeData<double[]> topicTimeData,String sourceName) {
 
 		StringBuffer output = new StringBuffer(); 
@@ -307,16 +284,4 @@ public class EngingPerformanceMultiCycles extends InnerService {
 		
 		return output.toString();
 	}	 
-	 
-	private String getLine(double[] array) {
-		
-		StringBuffer output = new StringBuffer();
-		for(double d : array ) 
-		{
-			output.append(seperator).append(d);
-		}
-		
-		return output.toString();
-		
-	}  
 } 

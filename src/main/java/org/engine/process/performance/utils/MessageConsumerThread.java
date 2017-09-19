@@ -1,9 +1,9 @@
-package org.engine.process.performance.multi;
+package org.engine.process.performance.utils;
 
 import org.apache.log4j.Logger;
 import org.engine.process.performance.Main;
 
-class MessageConsumerThread implements Runnable {
+public class MessageConsumerThread implements Runnable {
 
 	private SingleCycle singleCycle;
 	private Logger logger = Main.logger;
@@ -16,12 +16,12 @@ class MessageConsumerThread implements Runnable {
 	@Override
 	public void run() {
 
-		for( MessageData messageData : singleCycle.getMessageDataList()) {
+		for( SingleMessageData messageData : singleCycle.getMessageDataList()) {
 	
-			logger.debug("in Thread num_of_cycle "+messageData.getNumOfCycle()+" num_of_update "+messageData.getNumOfUpdate());
+			logger.debug("in Thread "+messageData.toString());
 			
 			try {
-				messageData.getHandlePerformanceMessages().callConsumer();
+				messageData.getActivityConsumer().callConsumer();
 			} catch (Exception e) { 
 				
 				e.printStackTrace();

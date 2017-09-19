@@ -1,4 +1,4 @@
-package org.engine.process.performance;
+package org.engine.process.performance.activity.create;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +28,7 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.engine.process.performance.utils.InnerService;
+import org.engine.process.performance.utils.ServiceStatus;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -52,26 +53,18 @@ import java.util.Properties;
  *
  */
 
-public class EnginePerformanceSingleMessage extends InnerService {
+public class CreateActivitySingleMessage extends InnerService {
 
 	private StringBuffer output = new StringBuffer();
-	private String externalSystemID;	
-	private String kafkaAddress;
-	private String schemaRegustryUrl; 
-	private String schemaRegustryIdentity;
-	private String sourceName;   
+	private String externalSystemID;   
 	private String endl = "\n";
 	private SchemaRegistryClient schemaRegistry = null;
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>(); 
 
-	public EnginePerformanceSingleMessage(String kafkaAddress, String schemaRegustryUrl, String schemaRegustryIdentity,String sourceName) {
-
-		this.kafkaAddress = kafkaAddress;
-		this.schemaRegustryUrl = schemaRegustryUrl;
-		this.schemaRegustryIdentity = schemaRegustryIdentity;
-		this.sourceName = sourceName; 
+	public CreateActivitySingleMessage() {
+		super();
 	}
 
 	@Override
@@ -89,7 +82,7 @@ public class EnginePerformanceSingleMessage extends InnerService {
 
 		if(schemaRegustryUrl != null) {
 
-			schemaRegistry = new CachedSchemaRegistryClient(schemaRegustryUrl, Integer.parseInt(schemaRegustryIdentity));
+			schemaRegistry = new CachedSchemaRegistryClient(schemaRegustryUrl, Integer.parseInt(schemaRegistryIdentity));
 		}
 		else {
 			schemaRegistry = new MockSchemaRegistryClient();
@@ -216,34 +209,7 @@ public class EnginePerformanceSingleMessage extends InnerService {
 		+"\"height\":\"44\","
 		+"\"nickname\":\"mick\"," 
 		+" \"timestamp\":\""+timestamp+"\"  }";
-	}
-
-	private Properties getProperties(boolean isAvro) {
-
-		Properties props = new Properties();
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);
-		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-				StringSerializer.class);
-		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-				StringDeserializer.class);
-		if(isAvro) {
-			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-					io.confluent.kafka.serializers.KafkaAvroSerializer.class);
-			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-					io.confluent.kafka.serializers.KafkaAvroDeserializer.class);
-		}
-		else {
-			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-					StringSerializer.class);
-			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-					StringDeserializer.class);	
-		}
- 	
-		props.put("schema.registry.url", schemaRegustryUrl);
-		props.put("group.id", "group1");
-
-		return props;
-	}
+	} 
 
 	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer,String lat,String longX) throws JsonParseException, JsonMappingException, IOException {
 

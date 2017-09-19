@@ -6,6 +6,11 @@
  * user guide available at https://docs.gradle.org/3.4.1/userguide/java_library_plugin.html
  */
 
+plugins {
+  id "com.commercehub.gradle.plugin.avro" version "0.9.0"
+}
+
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -32,6 +37,11 @@ dependencies {
 	compile "io.confluent:common:3.2.0"
 	
 	compile group: 'org.apache.commons', name: 'commons-csv', version: '1.5'
+}
+
+avro {
+    createSetters = true
+    fieldVisibility = "PRIVATE"
 }
 
 mainClassName = 'org.engine.process.performance.Main'

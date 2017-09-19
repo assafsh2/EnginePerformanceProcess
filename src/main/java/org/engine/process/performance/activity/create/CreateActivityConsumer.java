@@ -1,4 +1,4 @@
-package org.engine.process.performance.multi;
+package org.engine.process.performance.activity.create;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,17 +13,14 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-
-import akka.japi.Pair;  
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
-
-import org.apache.kafka.clients.producer.ProducerConfig; 
+import org.apache.kafka.common.TopicPartition; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.apache.log4j.Logger;
 import org.engine.process.performance.Main;
+import org.engine.process.performance.activity.merge.MergeActivityConsumer;
+import org.engine.process.performance.utils.ActivityConsumer;
+import org.engine.process.performance.utils.Pair;
+import org.engine.process.performance.utils.Utils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -43,12 +40,10 @@ import java.util.Properties;
  *
  */
 
-public class HandlePerformanceMessages {
+public class CreateActivityConsumer extends ActivityConsumer {
 
 	private StringBuffer output = new StringBuffer();
-	private String externalSystemID;	
-	private String kafkaAddress;
-	private String schemaRegustryUrl;  
+	private String externalSystemID;
 	private String sourceName;   
 	private String endl = "\n"; 
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
@@ -58,32 +53,6 @@ public class HandlePerformanceMessages {
 	private long lastOffsetForUpdate;
 	private long lastOffsetForSource;	
 	private Pair<Long,Long> timeDifferences;
-	private Logger logger = Main.logger;
-	
-	public long getLastOffsetForRawData() {
-		return lastOffsetForRawData;
-	}
-
-	public void setLastOffsetForRawData(long lastOffsetForRawData) {
-		this.lastOffsetForRawData = lastOffsetForRawData;
-	}
-
-	public long getLastOffsetForUpdate() {
-		return lastOffsetForUpdate;
-	}
-
-	public void setLastOffsetForUpdate(long lastOffsetForUpdate) {
-		this.lastOffsetForUpdate = lastOffsetForUpdate;
-	}
-
-	public long getLastOffsetForSource() {
-		return lastOffsetForSource;
-	}
-
-	public void setLastOffsetForSource(long lastOffsetForSource) {
-		this.lastOffsetForSource = lastOffsetForSource;
-	}
-
 	private KafkaConsumer<Object, Object> consumer;
 	private KafkaConsumer<Object, Object> consumer2;
 	private KafkaConsumer<Object, Object> consumer3;
@@ -91,13 +60,16 @@ public class HandlePerformanceMessages {
 	private TopicPartition partitionSource;
 	private TopicPartition partitionUpdate;
 	private String lat;
-	private String longX;
+	private String longX;	
+
+	final static public Logger logger = Logger.getLogger(CreateActivityConsumer.class);
+
+	static {
+		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+	}
 	
+	public CreateActivityConsumer(String sourceName, String externalSystemID, String lat , String longX) {
 
-	public HandlePerformanceMessages(String kafkaAddress, String schemaRegustryUrl, String sourceName, String externalSystemID, String lat , String longX) {
-
-		this.kafkaAddress = kafkaAddress;
-		this.schemaRegustryUrl = schemaRegustryUrl; 
 		this.sourceName = sourceName; 
 		this.externalSystemID = externalSystemID; 
 		this.lat = lat;
@@ -107,14 +79,14 @@ public class HandlePerformanceMessages {
 		partitionUpdate = new TopicPartition("update", 0);
 	}
 
-	public void handleMessage() throws IOException, RestClientException {
+	public void handleMessage() throws IOException {
 		
 		rawDataRecordsList.clear();
 		updateRecordsList.clear(); 
 		sourceRecordsList.clear(); 
 			
-		Properties props = getProperties(false); 
-		Properties propsWithAvro = getProperties(true); 
+		Properties props = utils.getProperties(false); 
+		Properties propsWithAvro = utils.getProperties(true); 
 				
 		consumer = new KafkaConsumer<Object, Object>(props);
 		consumer.assign(Arrays.asList(partitionRawData));
@@ -141,8 +113,61 @@ public class HandlePerformanceMessages {
 			producer.send(record); 
 
 		}
+	} 
+	
+	@Override
+	public void callConsumer() throws Exception {
+
+		consumer.seek(partitionRawData, lastOffsetForRawData);
+		callConsumersWithKafkaConsuemr(consumer);
+
+		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
+		callConsumersWithKafkaConsuemr(consumer2); 
+		
+		consumer3.seek(partitionSource, lastOffsetForSource);
+		callConsumersWithKafkaConsuemr(consumer3);
+		
+		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
+		logger.debug("====Consumer from topic update: "+update.toString());
+		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
+		logger.debug("====Consumer from topic source: "+source.toString());
+		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
+		logger.debug("====Consumer from topic "+sourceName+"-raw-data: "+rowData.toString());
+		
+		timeDifferences = new Pair<Long,Long>(update.getRight() - source.getRight(), source.getRight() - rowData.getRight());	
+	} 
+	
+	
+	public Pair<Long,Long> getTimeDifferences() throws Exception {
+		
+		return timeDifferences; 
+	}	
+
+
+	public long getLastOffsetForRawData() {
+		return lastOffsetForRawData;
 	}
 
+	public void setLastOffsetForRawData(long lastOffsetForRawData) {
+		this.lastOffsetForRawData = lastOffsetForRawData;
+	}
+
+	public long getLastOffsetForUpdate() {
+		return lastOffsetForUpdate;
+	}
+
+	public void setLastOffsetForUpdate(long lastOffsetForUpdate) {
+		this.lastOffsetForUpdate = lastOffsetForUpdate;
+	}
+
+	public long getLastOffsetForSource() {
+		return lastOffsetForSource;
+	}
+
+	public void setLastOffsetForSource(long lastOffsetForSource) {
+		this.lastOffsetForSource = lastOffsetForSource;
+	}
+	
 	private String getJsonGenericRecord(String lat,String longX) {
 
 		/*
@@ -169,35 +194,8 @@ public class HandlePerformanceMessages {
 		+"\"height\":\"44\","
 		+"\"nickname\":\"mick\"," 
 		+" \"timestamp\":\""+timestamp+"\"  }";
-	}
-
-	private Properties getProperties(boolean isAvro) {
-
-		Properties props = new Properties();
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);
-		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-				StringSerializer.class);
-		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-				StringDeserializer.class);
-		if(isAvro) {
-			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-					io.confluent.kafka.serializers.KafkaAvroSerializer.class);
-			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-					io.confluent.kafka.serializers.KafkaAvroDeserializer.class);
-		}
-		else {
-			props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-					StringSerializer.class);
-			props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-					StringDeserializer.class);	
-		}
- 	
-		props.put("schema.registry.url", schemaRegustryUrl);
-		props.put("group.id", "group1");
-
-		return props;
-	}
-
+	} 
+	
 	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer) throws JsonParseException, JsonMappingException, IOException {
 
 		boolean isRunning = true;
@@ -248,33 +246,6 @@ public class HandlePerformanceMessages {
 			}
 		}
 	}
-
-	public void callConsumer() throws Exception {
-
-		consumer.seek(partitionRawData, lastOffsetForRawData);
-		callConsumersWithKafkaConsuemr(consumer);
-
-		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
-		callConsumersWithKafkaConsuemr(consumer2); 
-		
-		consumer3.seek(partitionSource, lastOffsetForSource);
-		callConsumersWithKafkaConsuemr(consumer3);
-		
-		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
-		logger.debug("====Consumer from topic update: "+update.toString());
-		Pair<GenericRecord,Long> source = sourceRecordsList.stream().collect(Collectors.toList()).get(0);
-		logger.debug("====Consumer from topic source: "+source.toString());
-		Pair<String,Long> rowData = rawDataRecordsList.stream().collect(Collectors.toList()).get(0);
-		logger.debug("====Consumer from topic "+sourceName+"-raw-data: "+rowData.toString());
-		
-		timeDifferences = new Pair<Long,Long>(update.second() - source.second(), source.second() - rowData.second());	
-	} 
-	
-	
-	public Pair<Long,Long> getTimeDifferences() throws Exception {
-		
-		return timeDifferences; 
-	}	
 	
 	private Map<String,String> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		
