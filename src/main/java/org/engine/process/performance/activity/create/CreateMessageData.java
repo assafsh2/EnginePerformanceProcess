@@ -112,7 +112,23 @@ public class CreateMessageData implements SingleMessageData{
 	}
 	
 	@Override
-	public String toString() {
-		return "numOfCycle=" + numOfCycle + ", numOfUpdate=" + numOfUpdate;
+	public String toString() { 
+		
+		StringBuffer stringBuffer = new StringBuffer();
+		stringBuffer.append("******************************************").append(endl);
+		stringBuffer.append("StartTime: "+startTime).append(endl);
+		stringBuffer.append("Cycle NO: "+numOfCycle).append(endl);
+		stringBuffer.append("Update NO: "+numOfUpdate).append(endl);
+		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
+		stringBuffer.append("lat: "+lat).append(endl);
+		stringBuffer.append("longX: "+longX).append(endl);
+		if( rawDataToSourceDiffTime > 0 ) {
+			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
+			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	
+			stringBuffer.append("lastOffsetForUpdate: "+lastOffsetForUpdate).append(endl);
+			stringBuffer.append("The action between topics  <"+sourceName+"-row-data> and <"+sourceName+"> took "+ rawDataToSourceDiffTime +" millisec").append(endl);
+			stringBuffer.append("The action between topics  <"+sourceName+"> and <update> took "+ sourceToUpdateDiffTime +" millisec").append(endl).append(endl);
+		}
+	    return stringBuffer.toString();
 	}
 }

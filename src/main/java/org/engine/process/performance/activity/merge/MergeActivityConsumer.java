@@ -1,7 +1,10 @@
 package org.engine.process.performance.activity.merge;
 
 import java.util.Arrays; 
+import java.util.List;
 import java.util.Set; 
+
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -12,12 +15,35 @@ import org.engine.process.performance.utils.Pair;
 import org.engine.process.performance.utils.Utils;
 import org.z.entities.schema.EntityFamily;
 import org.z.entities.schema.MergeEvent;
+import org.z.entities.schema.SystemEntity;
 
 public class MergeActivityConsumer extends ActivityConsumer{
 
 	private long lastOffsetForMerge;
 	private long lastOffsetForUpdate;
 	private Set<Pair<String,String>> sonsList;
+	private String[] uuidList;
+
+	public void setMergeConsumer(KafkaConsumer<Object, Object> mergeConsumer) {
+		this.mergeConsumer = mergeConsumer;
+	}
+
+	public void setUpdateConsumer(KafkaConsumer<Object, Object> updateConsumer) {
+		this.updateConsumer = updateConsumer;
+	}
+
+	public void setPartitionMerge(TopicPartition partitionMerge) {
+		this.partitionMerge = partitionMerge;
+	}
+
+	public void setPartitionUpdate(TopicPartition partitionUpdate) {
+		this.partitionUpdate = partitionUpdate;
+	}
+
+	public void setMergeToUpdateTimeDiff(long mergeToUpdateTimeDiff) {
+		this.mergeToUpdateTimeDiff = mergeToUpdateTimeDiff;
+	}
+
 	private KafkaConsumer<Object, Object> mergeConsumer;
 	private KafkaConsumer<Object, Object> updateConsumer;
 	private TopicPartition partitionMerge; 
@@ -67,6 +93,14 @@ public class MergeActivityConsumer extends ActivityConsumer{
 		return mergeToUpdateTimeDiff;
 	}
 	
+	public String[] getUuidList() {
+		return uuidList;
+	}
+
+	public void setUuidList(String[] uuidList) {
+		this.uuidList = uuidList;
+	}
+	
 	private long callMergeTopic() {
 
 		while (true) {
@@ -74,10 +108,12 @@ public class MergeActivityConsumer extends ActivityConsumer{
 
 			for (ConsumerRecord<Object, Object> param : records) {
 
-				MergeEvent mergeEvent = (MergeEvent)param.value(); 
-				if(metadata.equals((String) mergeEvent.getMetadata())) {
+				GenericRecord mergeEvent = (GenericRecord)param.value(); 
+				String metadata = (String) mergeEvent.get("metadata");
+				if(this.metadata.equals(metadata)) {
 
 					logger.debug("Found ConsumerRecord for merge : "+param);
+					logger.debug("timestamp : "+param.timestamp());
 					return param.timestamp();
 				} 
 			}
@@ -91,11 +127,11 @@ public class MergeActivityConsumer extends ActivityConsumer{
 
 			for (ConsumerRecord<Object, Object> param : records) {
 
-				EntityFamily entityFamily = (EntityFamily)param.value();
-				
-				if(utils.getSonsFromRecrod(entityFamily).equals(sonsList)) {
+				GenericRecord family = (GenericRecord)param.value(); 				
+				if(utils.getSonsFromRecrod(family).equals(sonsList)) {
 					
-					logger.debug("Found ConsumerRecord for merge : "+param);
+					logger.debug("Found ConsumerRecord for update : "+param);
+					logger.debug("timestamp : "+param.timestamp());
 					return param.timestamp();
 				}
 			}

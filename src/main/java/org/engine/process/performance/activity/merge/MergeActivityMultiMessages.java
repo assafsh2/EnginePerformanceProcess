@@ -1,11 +1,8 @@
 package org.engine.process.performance.activity.merge;
 
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
-
+import io.confluent.kafka.serializers.KafkaAvroDeserializer; 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,8 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.reflect.ReflectData;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -163,7 +158,7 @@ public class MergeActivityMultiMessages extends InnerService {
 	}
 
 
-	private SingleCycle runSingleCycle(int numOfCycles) throws Exception {		
+	private SingleCycle runSingleCycle(int numOfCycle) throws Exception {		
 
 		updateConsumer.seekToEnd(Arrays.asList(updatePartition));
 		long lastOffsetForUpdate = updateConsumer.position(updatePartition); 
@@ -171,7 +166,7 @@ public class MergeActivityMultiMessages extends InnerService {
 		updateConsumer.seek(updatePartition, newOffset); 
 
 		Map<UUID,GenericRecord> entitiesMap = getEntitiesToMerge();
-		
+
 		if( entitiesMap.size() != numOfUpdatesPerCycle *2 ) {
 			logger.error("Not found entities to merge");
 			throw new Exception("Not found entities to merge"); 
@@ -183,12 +178,11 @@ public class MergeActivityMultiMessages extends InnerService {
 
 			MergeMessageData mergeMessageData = sendMergeMessage(uuidList.get(i),uuidList.get(i+1),entitiesMap);
 			((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);    
-			mergeMessageData.setNumOfMerge(numOfMerge); 		
+			mergeMessageData.setNumOfCycle(numOfCycle); 
+			mergeMessageData.setNumOfUpdate(i);  
 
-			singleCycle.addMessageData(mergeMessageData);
-			numOfMerge++;
+			singleCycle.addMessageData(mergeMessageData); 
 		}
-
 		return singleCycle;
 	}
 
@@ -217,6 +211,8 @@ public class MergeActivityMultiMessages extends InnerService {
 		sonsList.addAll(utils.getSonsFromRecrod(entitiesMap.get(uuid1)));
 		mergeActivityConsumer.setSonsList(sonsList);
 		mergeActivityConsumer.setMetadata(randomExternalSystemID); 
+		String[] uuidList = {uuid1.toString(),uuid2.toString()};
+		mergeActivityConsumer.setUuidList(uuidList);
 
 		mergeMessageData.setActivityConsumer(mergeActivityConsumer);
 
@@ -238,15 +234,15 @@ public class MergeActivityMultiMessages extends InnerService {
 			} 
 		}
 		output.append(endl);
-		output.append("The average between <merge> and <update> is "+utils.mean(diffTimeArray) ).append(endl);		 
-		output.append("The median between <merge> and <update> is "+utils.median(diffTimeArray)).append(endl);
-		output.append("The standard deviation  between <merge> and <update> is "+utils.standardDeviation(diffTimeArray)).append(endl);
-
+		if(diffTimeArray.length > 1) {
+			output.append("The average between <merge> and <update> is "+utils.mean(diffTimeArray) ).append(endl);		 
+			output.append("The median between <merge> and <update> is "+utils.median(diffTimeArray)).append(endl);
+			output.append("The standard deviation  between <merge> and <update> is "+utils.standardDeviation(diffTimeArray)).append(endl);
+		}
 		output.append("Export to CSV ").append(endl);
 		output.append("NUM_OF_INTERCAES").append(seperator).append(numOfInteraces).append(endl);
 		output.append("NUM_OF_UPDATES").append(seperator).append(numOfUpdatesPerSec).append(endl);
-		output.append("MERGE").append(endl);
-		output.append(getLine(diffTimeArray)).append(endl); 
+		output.append("MERGE").append(getLine(diffTimeArray)).append(endl); 
 
 		return output.toString();
 	}
@@ -300,7 +296,7 @@ public class MergeActivityMultiMessages extends InnerService {
 
 			                   [{"entityID": "73db3baa-6398-4c5b-84d2-a374c9835749",
 			                          "entityAttributes": {"basicAttributes": {"coordinate": {"lat": 32.96493430463744, "long": 34.01703434503374}, "isNotTracked": false, "entityOffset": 0, "sourceName": "source2"}, "speed": 12.0, "elevation": 0.0, "course": 0.0, "nationality": "SPAIN", "category": "airplane", "pictureURL": "url", "height": 0.0, "nickname": "nickname", "externalSystemID": "24ca978a-90c3-4ab0-b867-ec7eae31a9fc"}}
-	
+
 	 */
 
 	private Map<UUID,GenericRecord> getEntitiesToMerge() {
@@ -354,7 +350,7 @@ public class MergeActivityMultiMessages extends InnerService {
 					throws Exception {
 
 				System.out.println("Param "+param.value()); 
-			    consumerRecords.add((GenericRecord)param.value()); 
+				consumerRecords.add((GenericRecord)param.value()); 
 			}
 		}; 
 
@@ -365,13 +361,13 @@ public class MergeActivityMultiMessages extends InnerService {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
-			 
+
 			e.printStackTrace();
 		}
 
 		return consumerRecords;
 	}  
-    
+
 	private void registerSchemas(SchemaRegistryClient schemaRegistry) {
 
 		try {
