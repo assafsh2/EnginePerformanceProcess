@@ -1,9 +1,7 @@
 package org.engine.process.performance.activity.merge;
 
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer; 
-import java.io.IOException;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient; 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;  
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
@@ -16,8 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.reflect.ReflectData;
+import org.apache.avro.generic.GenericRecord; 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -36,12 +33,9 @@ import org.engine.process.performance.utils.Pair;
 import org.engine.process.performance.utils.ServiceStatus;
 import org.engine.process.performance.utils.SingleCycle;
 import org.engine.process.performance.utils.SingleMessageData;
-import org.engine.process.performance.utils.Utils;
-import org.z.entities.schema.BasicSystemEntityAttributes;
+import org.engine.process.performance.utils.Utils; 
 import org.z.entities.schema.Category;
-import org.z.entities.schema.Coordinate;
-import org.z.entities.schema.EntityFamily;
-import org.z.entities.schema.GeneralSystemEntityAttributes;
+import org.z.entities.schema.Coordinate;  
 import org.z.entities.schema.MergeEvent;   
 import org.z.entities.schema.Nationality;
 import org.z.entities.schema.SystemEntity; 
@@ -59,22 +53,9 @@ public class MergeActivityMultiMessages extends InnerService {
 	private KafkaConsumer<Object, Object> mergeConsumer;
 	private TopicPartition updatePartition; 
 	private TopicPartition mergePartition; 	
-	private double[] diffTimeArray;
-	private int numOfMerge = 0;
+	private double[] diffTimeArray; 
 	private static boolean testing = Main.testing;
-
-
-
-	//Testing
-	SchemaRegistryClient schemaRegistry;
-	ActorMaterializer materializer;
-	ActorSystem system;
-	public void setTesting(SchemaRegistryClient schemaRegistry,ActorMaterializer materializer,ActorSystem system) {
-		this.schemaRegistry = schemaRegistry;
-		this.materializer = materializer;
-		this.system = system;
-	}
-
+ 
 	final static public Logger logger = Logger.getLogger(MergeActivityMultiMessages.class);
 	static {
 		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
@@ -96,7 +77,7 @@ public class MergeActivityMultiMessages extends InnerService {
 	protected void postExecute() throws Exception {
 
 		logger.debug("===postExecute");
-		diffTimeArray = new double[numOfMerge];
+		diffTimeArray = new double[numOfCycles*numOfUpdatesPerCycle];
 		int i = 0;
 		for(SingleCycle cycle : cyclesList ) {
 			logger.debug("Cycle "+i);
@@ -316,8 +297,8 @@ public class MergeActivityMultiMessages extends InnerService {
 			ConsumerRecords<Object, Object> records = updateConsumer.poll(1000);
 			for (ConsumerRecord<Object, Object> record : records) { 
 
-				EntityFamily family = (EntityFamily)record.value();
-				UUID uuid = UUID.fromString(family.getEntityID());
+				GenericRecord family = (GenericRecord)record.value();
+				UUID uuid = UUID.fromString((String)family.get("entityID").toString());
 				entitiesMap.put(uuid, family); 
 				if( entitiesMap.size() == numOfUpdatesPerCycle * 2) 
 					break;
@@ -329,6 +310,16 @@ public class MergeActivityMultiMessages extends InnerService {
 	/**
 	 *  Only for testing
 	 */
+	 
+	SchemaRegistryClient schemaRegistry;
+	ActorMaterializer materializer;
+	ActorSystem system;
+	public void setTesting(SchemaRegistryClient schemaRegistry,ActorMaterializer materializer,ActorSystem system) {
+		this.schemaRegistry = schemaRegistry;
+		this.materializer = materializer;
+		this.system = system;
+	}
+	
 	private List<GenericRecord> callConsumersWithAkka(String topicName) {			
 
 		KafkaAvroDeserializer keyDeserializer = new KafkaAvroDeserializer(schemaRegistry);
@@ -366,23 +357,5 @@ public class MergeActivityMultiMessages extends InnerService {
 		}
 
 		return consumerRecords;
-	}  
-
-	private void registerSchemas(SchemaRegistryClient schemaRegistry) {
-
-		try {
-			schemaRegistry.register("MergeEvent",MergeEvent.SCHEMA$);
-			schemaRegistry.register("EntityFamily",EntityFamily.SCHEMA$);
-			schemaRegistry.register("Coordinate",Coordinate.SCHEMA$);
-			schemaRegistry.register("Nationality",Nationality.SCHEMA$);
-			schemaRegistry.register("Category",Category.SCHEMA$);
-			schemaRegistry.register("SystemEntity",SystemEntity.SCHEMA$);
-			schemaRegistry.register("BasicSystemEntityAttributes",BasicSystemEntityAttributes.SCHEMA$);
-			schemaRegistry.register("GeneralSystemEntityAttributes",GeneralSystemEntityAttributes.SCHEMA$);
-
-		} catch (IOException | RestClientException e) {
-
-			e.printStackTrace();
-		}
-	}
+	}   
 }

@@ -132,9 +132,9 @@ public class Utils {
 		for(GenericRecord systemEntity : sonsList) {
 
 			GenericRecord entityAttributes = (GenericRecord)systemEntity.get("entityAttributes");
-			String externalSystemID = (String) entityAttributes.get("externalSystemID");
+			String externalSystemID = (String) entityAttributes.get("externalSystemID").toString();
 			GenericRecord basicAttributes = (GenericRecord)entityAttributes.get("basicAttributes");
-			String sourceName = (String) basicAttributes.get("sourceName");
+			String sourceName = (String) basicAttributes.get("sourceName").toString();
 			logger.debug("External System ID : "+ externalSystemID + " Source Name : " + sourceName);
 			set.add(new Pair<String,String>(externalSystemID,sourceName)); 
 		}		

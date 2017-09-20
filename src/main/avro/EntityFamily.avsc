@@ -5,5 +5,5 @@
  "fields": 
     [ {"name": "entityID", "type": "string"},
       {"name": "stateChanges", "type": "string"},
-	  {"name": "entityAttributes", "type": "GeneralSystemEntityAttributes"},
+	  {"name": "entityAttributes", "type": "GeneralEntityAttributes"},
 		{"name" : "sons", "type": [{"type": "array", "items": "SystemEntity"}]}	]};

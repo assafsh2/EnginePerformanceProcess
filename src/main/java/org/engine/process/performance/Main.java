@@ -17,21 +17,16 @@ import org.engine.process.performance.utils.Utils;
 
 public class Main {
 
-	public static boolean testing = true;
+	public static boolean testing = false;
 	
 	final static public Logger logger = Logger.getLogger(Main.class);
 
 	static {
-
 		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
 	}
 
 	public static void main(String[] args) throws InterruptedException,
 			IOException {
-		
-		if(testing) {
-		 
-		}
 
 		String printToFile = System.getenv("PRINT_TO_FILE");
 		String fileLocation = System.getenv("FILE_LOCATION");

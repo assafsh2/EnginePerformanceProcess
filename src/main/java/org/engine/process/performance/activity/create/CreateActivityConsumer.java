@@ -242,7 +242,6 @@ public class CreateActivityConsumer extends ActivityConsumer {
 					consumer.close();
 					break;
 				}
-
 			}
 		}
 	}

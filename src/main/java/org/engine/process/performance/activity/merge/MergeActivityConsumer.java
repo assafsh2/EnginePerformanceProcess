@@ -1,7 +1,6 @@
 package org.engine.process.performance.activity.merge;
 
 import java.util.Arrays; 
-import java.util.List;
 import java.util.Set; 
 
 import org.apache.avro.generic.GenericRecord;
@@ -12,10 +11,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger; 
 import org.engine.process.performance.utils.ActivityConsumer;
 import org.engine.process.performance.utils.Pair;
-import org.engine.process.performance.utils.Utils;
-import org.z.entities.schema.EntityFamily;
-import org.z.entities.schema.MergeEvent;
-import org.z.entities.schema.SystemEntity;
+import org.engine.process.performance.utils.Utils; 
 
 public class MergeActivityConsumer extends ActivityConsumer{
 
@@ -23,7 +19,29 @@ public class MergeActivityConsumer extends ActivityConsumer{
 	private long lastOffsetForUpdate;
 	private Set<Pair<String,String>> sonsList;
 	private String[] uuidList;
+	private KafkaConsumer<Object, Object> mergeConsumer;
+	private KafkaConsumer<Object, Object> updateConsumer;
+	private TopicPartition partitionMerge; 
+	private TopicPartition partitionUpdate;
+	private long mergeToUpdateTimeDiff;
+	private String metadata; 
 
+	@Override
+	public void callConsumer() {
+
+		mergeConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
+		mergeConsumer.assign(Arrays.asList(partitionMerge));
+		mergeConsumer.seek(partitionMerge, lastOffsetForMerge);
+		long mergeTimestamp = callMergeTopic();
+
+		updateConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
+		updateConsumer.assign(Arrays.asList(partitionUpdate));
+		updateConsumer.seek(partitionUpdate, lastOffsetForUpdate);
+		long updateTimestamp = callUpdateTopic();
+
+		mergeToUpdateTimeDiff = updateTimestamp - mergeTimestamp;
+	}  
+	
 	public void setMergeConsumer(KafkaConsumer<Object, Object> mergeConsumer) {
 		this.mergeConsumer = mergeConsumer;
 	}
@@ -44,34 +62,7 @@ public class MergeActivityConsumer extends ActivityConsumer{
 		this.mergeToUpdateTimeDiff = mergeToUpdateTimeDiff;
 	}
 
-	private KafkaConsumer<Object, Object> mergeConsumer;
-	private KafkaConsumer<Object, Object> updateConsumer;
-	private TopicPartition partitionMerge; 
-	private TopicPartition partitionUpdate;
-	private long mergeToUpdateTimeDiff;
-	private String metadata; 
-	
-	final static public Logger logger = Logger.getLogger(MergeActivityConsumer.class);
 
-	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
-	}
- 
-	@Override
-	public void callConsumer() {
-
-		mergeConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
-		mergeConsumer.assign(Arrays.asList(partitionMerge));
-		mergeConsumer.seek(partitionMerge, lastOffsetForMerge);
-		long mergeTimestamp = callMergeTopic();
-
-		updateConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
-		updateConsumer.assign(Arrays.asList(partitionUpdate));
-		updateConsumer.seek(partitionUpdate, lastOffsetForUpdate);
-		long updateTimestamp = callUpdateTopic();
-
-		mergeToUpdateTimeDiff = updateTimestamp - mergeTimestamp;
-	}  
 
 	public void setLastOffsetForMerge(long lastOffsetForMerge) {
 		this.lastOffsetForMerge = lastOffsetForMerge;
@@ -109,9 +100,8 @@ public class MergeActivityConsumer extends ActivityConsumer{
 			for (ConsumerRecord<Object, Object> param : records) {
 
 				GenericRecord mergeEvent = (GenericRecord)param.value(); 
-				String metadata = (String) mergeEvent.get("metadata");
+				String metadata = (String) mergeEvent.get("metadata").toString();
 				if(this.metadata.equals(metadata)) {
-
 					logger.debug("Found ConsumerRecord for merge : "+param);
 					logger.debug("timestamp : "+param.timestamp());
 					return param.timestamp();
@@ -128,8 +118,7 @@ public class MergeActivityConsumer extends ActivityConsumer{
 			for (ConsumerRecord<Object, Object> param : records) {
 
 				GenericRecord family = (GenericRecord)param.value(); 				
-				if(utils.getSonsFromRecrod(family).equals(sonsList)) {
-					
+				if(utils.getSonsFromRecrod(family).equals(sonsList)) {					
 					logger.debug("Found ConsumerRecord for update : "+param);
 					logger.debug("timestamp : "+param.timestamp());
 					return param.timestamp();

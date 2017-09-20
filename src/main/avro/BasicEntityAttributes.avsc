@@ -1,5 +1,5 @@
 {"type": "record", 
- "name": "BasicSystemEntityAttributes",
+ "name": "BasicEntityAttributes",
  "namespace" : "org.z.entities.schema",
  "doc": "This is a schema for basic entity attributes, this will represent basic entity in all life cycle",
  "fields": [
