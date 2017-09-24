@@ -2,6 +2,9 @@ package org.engine.process.performance.activity.merge;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient; 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;  
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.Logger; 
 import org.engine.process.performance.Main;
 import org.engine.process.performance.csv.CsvFileWriter; 
@@ -33,19 +37,20 @@ import org.engine.process.performance.utils.Pair;
 import org.engine.process.performance.utils.ServiceStatus;
 import org.engine.process.performance.utils.SingleCycle;
 import org.engine.process.performance.utils.SingleMessageData;
-import org.engine.process.performance.utils.Utils; 
-import org.z.entities.schema.Category;
-import org.z.entities.schema.Coordinate;  
+import org.engine.process.performance.utils.Utils;    
 import org.z.entities.schema.MergeEvent;   
-import org.z.entities.schema.Nationality;
-import org.z.entities.schema.SystemEntity; 
 
+import akka.Done;
 import akka.actor.ActorSystem;
 import akka.japi.function.Procedure;
 import akka.kafka.ConsumerSettings;
+import akka.kafka.ProducerSettings;
 import akka.kafka.Subscriptions;
 import akka.kafka.javadsl.Consumer;
+import akka.kafka.javadsl.Producer;
 import akka.stream.ActorMaterializer;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
 
 public class MergeActivityMultiMessages extends InnerService {
 
@@ -55,7 +60,7 @@ public class MergeActivityMultiMessages extends InnerService {
 	private TopicPartition mergePartition; 	
 	private double[] diffTimeArray; 
 	private static boolean testing = Main.testing;
- 
+
 	final static public Logger logger = Logger.getLogger(MergeActivityMultiMessages.class);
 	static {
 		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
@@ -179,9 +184,14 @@ public class MergeActivityMultiMessages extends InnerService {
 		mergeConsumer.seekToEnd(Arrays.asList(mergePartition));
 		long lastOffsetForMerge = mergeConsumer.position(mergePartition); 
 
-		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(getProperties(false))) {
-			ProducerRecord<Object, Object> record = new ProducerRecord<>("merge",mergeEvent);
-			producer.send(record);
+		if(testing) {
+			callProducerWithAkka("merge", mergeEvent);
+		}
+		else {
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(getProperties(false))) {
+				ProducerRecord<Object, Object> record = new ProducerRecord<>("merge",mergeEvent);
+				producer.send(record);
+			}
 		}
 
 		MergeActivityConsumer mergeActivityConsumer = new MergeActivityConsumer();
@@ -284,11 +294,11 @@ public class MergeActivityMultiMessages extends InnerService {
 
 		Map<UUID,GenericRecord> entitiesMap = new HashMap<>();  
 		if(testing) {
-			List<GenericRecord> records = callConsumersWithAkka("update");
-			for(GenericRecord family : records) {
+			List<Pair<GenericRecord,Long>> records = callConsumersWithAkka("update");
+			for(Pair<GenericRecord,Long> pair : records) {
 
-				UUID uuid = UUID.fromString((String) family.get("entityID"));
-				entitiesMap.put(uuid, family);
+				UUID uuid = UUID.fromString((String) pair.getLeft().get("entityID"));
+				entitiesMap.put(uuid, pair.getLeft());
 				if( entitiesMap.size() == numOfUpdatesPerCycle * 2) 
 					break;
 			}
@@ -310,28 +320,28 @@ public class MergeActivityMultiMessages extends InnerService {
 	/**
 	 *  Only for testing
 	 */
-	 
-	SchemaRegistryClient schemaRegistry;
-	ActorMaterializer materializer;
-	ActorSystem system;
+
+	static SchemaRegistryClient schemaRegistry;
+	static ActorMaterializer materializer;
+	static ActorSystem system;
 	public void setTesting(SchemaRegistryClient schemaRegistry,ActorMaterializer materializer,ActorSystem system) {
 		this.schemaRegistry = schemaRegistry;
 		this.materializer = materializer;
 		this.system = system;
 	}
-	
-	private List<GenericRecord> callConsumersWithAkka(String topicName) {			
+
+	public static List<Pair<GenericRecord,Long>> callConsumersWithAkka(String topicName) {			
 
 		KafkaAvroDeserializer keyDeserializer = new KafkaAvroDeserializer(schemaRegistry);
 		keyDeserializer.configure(Collections.singletonMap("schema.registry.url", "http://fake-url"), true);
 
 		final ConsumerSettings<String, Object> consumerSettings =
 				ConsumerSettings.create(system, new StringDeserializer(), keyDeserializer)
-				.withBootstrapServers(kafkaAddress)
+				.withBootstrapServers("192.168.0.51:9092")
 				.withGroupId("group1")
 				.withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); 
 
-		List<GenericRecord> consumerRecords = new ArrayList<>(); 
+		List<Pair<GenericRecord,Long>> consumerRecords = new ArrayList<>(); 
 
 		Procedure<ConsumerRecord<String, Object>> f = new Procedure<ConsumerRecord<String, Object>>() {
 
@@ -341,7 +351,7 @@ public class MergeActivityMultiMessages extends InnerService {
 					throws Exception {
 
 				System.out.println("Param "+param.value()); 
-				consumerRecords.add((GenericRecord)param.value()); 
+				consumerRecords.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp())); 
 			}
 		}; 
 
@@ -358,4 +368,21 @@ public class MergeActivityMultiMessages extends InnerService {
 
 		return consumerRecords;
 	}   
+	
+	private void callProducerWithAkka(String topic,GenericRecord record) {
+		
+		ProducerSettings<String, Object> producerSettings = ProducerSettings
+				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
+				.withBootstrapServers(kafkaAddress);
+		
+		
+		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
+		
+		ProducerRecord<String, Object> producerRecord = new ProducerRecord<String, Object>(topic, record);
+
+		Source.from(Arrays.asList(producerRecord))
+		.to(sink)
+		.run(materializer);
+	}
+
 }
