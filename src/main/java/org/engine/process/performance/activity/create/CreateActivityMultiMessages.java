@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List; 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger; 
 import org.engine.process.performance.csv.CsvFileWriter;
@@ -108,7 +109,7 @@ public class CreateActivityMultiMessages extends InnerService {
 			return ServiceStatus.FAILURE;			
 		}
 
-		ExecutorService executor = Executors.newFixedThreadPool(5);
+		ExecutorService executor = Executors.newCachedThreadPool();
 		if( numOfCycles > 0 ) {
 
 			for( int i = 0; i < numOfCycles; i++ ) {
@@ -136,7 +137,7 @@ public class CreateActivityMultiMessages extends InnerService {
 			} 
 		}
 
-		executor.shutdown();
+		executor.shutdown(); 
 		while (!executor.isTerminated()) {
 		}
 		logger.debug("Finished all threads");

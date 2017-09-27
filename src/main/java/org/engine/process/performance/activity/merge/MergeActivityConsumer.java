@@ -38,11 +38,13 @@ public class MergeActivityConsumer extends ActivityConsumer{
 	public void callConsumer() {
 
 		mergeConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
+		partitionMerge = new TopicPartition("merge",0);
 		mergeConsumer.assign(Arrays.asList(partitionMerge));
 		mergeConsumer.seek(partitionMerge, lastOffsetForMerge);
 		long mergeTimestamp = callMergeTopic();
 
 		updateConsumer = new KafkaConsumer<Object, Object>(utils.getProperties(true));
+		partitionUpdate = new TopicPartition("update",0);
 		updateConsumer.assign(Arrays.asList(partitionUpdate));
 		updateConsumer.seek(partitionUpdate, lastOffsetForUpdate);
 		long updateTimestamp = callUpdateTopic();

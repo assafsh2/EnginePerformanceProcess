@@ -54,6 +54,7 @@ public abstract class InnerService {
 	public InnerService() {
 
 		utils = new Utils(); 
+		cyclesList = new ArrayList<>();
 
 		if(Main.testing) {
 			kafkaAddress = "192.168.0.51:9092 ";
@@ -61,7 +62,7 @@ public abstract class InnerService {
 			schemaRegistryIdentity = "2021";
 			sourceName = "source1"; 		
 			numOfCycles = 1;
-			numOfUpdatesPerCycle = 1; 
+			numOfUpdatesPerCycle = 2; 
 			interval = 500;
 			durationInMin = 0;	
 			numOfInteraces = 444;

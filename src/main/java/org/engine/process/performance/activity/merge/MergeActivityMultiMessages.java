@@ -104,7 +104,7 @@ public class MergeActivityMultiMessages extends InnerService {
 			return ServiceStatus.FAILURE;			
 		}
 
-		ExecutorService executor = Executors.newFixedThreadPool(5);
+		ExecutorService executor = Executors.newCachedThreadPool();
 
 		if(durationInMin > 0 ) {
 
@@ -160,10 +160,10 @@ public class MergeActivityMultiMessages extends InnerService {
 		SingleCycle singleCycle = new SingleCycle(); 
 
 		List<UUID> uuidList = new ArrayList<>(entitiesMap.keySet());
-		for(int i = 0; i < numOfUpdatesPerCycle; i++) {
+		for(int i = 0; i < numOfUpdatesPerCycle; i = i+2) {
 
 			MergeMessageData mergeMessageData = sendMergeMessage(uuidList.get(i),uuidList.get(i+1),entitiesMap);
-			((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);    
+			((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);      
 			mergeMessageData.setNumOfCycle(numOfCycle); 
 			mergeMessageData.setNumOfUpdate(i);  
 
@@ -199,7 +199,7 @@ public class MergeActivityMultiMessages extends InnerService {
 
 		Set<Pair<String,String>> sonsList = new HashSet<>();
 		sonsList.addAll(utils.getSonsFromRecrod(entitiesMap.get(uuid1)));
-		sonsList.addAll(utils.getSonsFromRecrod(entitiesMap.get(uuid1)));
+		sonsList.addAll(utils.getSonsFromRecrod(entitiesMap.get(uuid2)));
 		mergeActivityConsumer.setSonsList(sonsList);
 		mergeActivityConsumer.setMetadata(randomExternalSystemID); 
 		String[] uuidList = {uuid1.toString(),uuid2.toString()};
@@ -373,8 +373,7 @@ public class MergeActivityMultiMessages extends InnerService {
 		
 		ProducerSettings<String, Object> producerSettings = ProducerSettings
 				.create(system, new StringSerializer(), new KafkaAvroSerializer(schemaRegistry))
-				.withBootstrapServers(kafkaAddress);
-		
+				.withBootstrapServers(kafkaAddress);		
 		
 		Sink<ProducerRecord<String, Object>, CompletionStage<Done>> sink = Producer.plainSink(producerSettings);
 		
@@ -384,5 +383,4 @@ public class MergeActivityMultiMessages extends InnerService {
 		.to(sink)
 		.run(materializer);
 	}
-
 }
