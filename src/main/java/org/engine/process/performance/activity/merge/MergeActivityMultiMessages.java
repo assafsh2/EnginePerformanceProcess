@@ -84,14 +84,17 @@ public class MergeActivityMultiMessages extends InnerService {
 		logger.debug("===postExecute");
 		diffTimeArray = new double[numOfCycles*numOfUpdatesPerCycle];
 		int i = 0;
+		int j = 0;
 		for(SingleCycle cycle : cyclesList ) {
 			logger.debug("Cycle "+i);
 
 			for( SingleMessageData messageData : cycle.getMessageDataList()) {
 
 				MergeMessageData mergeMessageData = (MergeMessageData) messageData;
-				diffTimeArray[i] = ((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).getTimeDiff();
+				diffTimeArray[j] = ((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).getTimeDiff();
+				j++;
 			}	
+			i++;
 		}
 	}
 
@@ -127,7 +130,7 @@ public class MergeActivityMultiMessages extends InnerService {
 			for(int i =0 ; i < numOfCycles; i++) { 
 
 				logger.debug("===>CYCLE " + i);
-				SingleCycle singleCycle = runSingleCycle(numOfCycles);
+				SingleCycle singleCycle = runSingleCycle(i);
 
 				cyclesList.add(singleCycle); 
 				Runnable worker = new MessageConsumerThread(singleCycle);
@@ -160,9 +163,9 @@ public class MergeActivityMultiMessages extends InnerService {
 		SingleCycle singleCycle = new SingleCycle(); 
 
 		List<UUID> uuidList = new ArrayList<>(entitiesMap.keySet());
-		for(int i = 0; i < numOfUpdatesPerCycle; i = i+2) {
+		for(int i = 0; i < numOfUpdatesPerCycle; i++) {
 
-			MergeMessageData mergeMessageData = sendMergeMessage(uuidList.get(i),uuidList.get(i+1),entitiesMap);
+			MergeMessageData mergeMessageData = sendMergeMessage(uuidList.get(i*2),uuidList.get((i*2)+1),entitiesMap);
 			((MergeActivityConsumer)mergeMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);      
 			mergeMessageData.setNumOfCycle(numOfCycle); 
 			mergeMessageData.setNumOfUpdate(i);  
@@ -356,16 +359,15 @@ public class MergeActivityMultiMessages extends InnerService {
 		}; 
 
 		System.out.println("====="+topicName);
-		Consumer.committableSource(consumerSettings, Subscriptions.topics(topicName))
+		CompletionStage<Done> d = Consumer.committableSource(consumerSettings, Subscriptions.topics(topicName))
 		.map(result -> result.record()).runForeach(f, materializer);
-		//Wait till the array will be popultaed from kafka
+		//Wait till the array will be populated from kafka
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 
 			e.printStackTrace();
-		}
-
+		} 
 		return consumerRecords;
 	}   
 	

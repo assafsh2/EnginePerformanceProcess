@@ -15,17 +15,14 @@ public class MessageConsumerThread implements Runnable {
 
 	@Override
 	public void run() {
-
-		for( SingleMessageData messageData : singleCycle.getMessageDataList()) {
-	
-			logger.debug("in Thread "+messageData.toString());
-			
+		for (SingleMessageData messageData : singleCycle.getMessageDataList()) {
+			logger.debug("in Thread " + messageData.toString());
 			try {
 				messageData.getActivityConsumer().callConsumer();
-			} catch (Exception e) { 
-				
+			} catch (Exception e) {
+
 				e.printStackTrace();
-			} 
+			}
 		}
 	}
-} 
+}
