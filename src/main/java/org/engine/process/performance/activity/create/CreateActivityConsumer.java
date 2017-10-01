@@ -61,7 +61,6 @@ public class CreateActivityConsumer extends ActivityConsumer {
 	private TopicPartition partitionUpdate;
 	private String lat;
 	private String longX;	
-
 	final static public Logger logger = Logger.getLogger(CreateActivityConsumer.class);
 
 	static {

@@ -5,19 +5,13 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.ArrayList; 
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.avro.Schema;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.avro.Schema; 
 import org.apache.log4j.Logger;
-import org.engine.process.performance.Main;
-import org.engine.process.performance.activity.merge.MergeActivityMultiMessages;
+import org.engine.process.performance.Main; 
 
 
 public abstract class InnerService {
@@ -43,8 +37,11 @@ public abstract class InnerService {
 	abstract protected ServiceStatus execute() throws Exception;
 	abstract public String getOutput();
 	abstract public void printOutputToFile(String fileLocation);
-
 	protected Utils utils;
+	final static public Logger logger = Logger.getLogger(InnerService.class);
+	static {
+		Utils.setDebugLevel(logger);
+	}
 
 	public InnerService() {
 

@@ -30,8 +30,7 @@ public class CreateActivityMultiMessages extends InnerService {
 	private TopicTimeData<double[]> createArray;
 	private TopicTimeData<double[]> updateArray; 
 	private String seperator = ",";
-	private String emptyString = "";
-	
+	private String emptyString = "";	
 	final static public Logger logger = Logger.getLogger(CreateActivityMultiMessages.class);
 	static {
 

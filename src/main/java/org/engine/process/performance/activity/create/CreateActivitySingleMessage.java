@@ -27,8 +27,10 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
+import org.apache.log4j.Logger;
 import org.engine.process.performance.utils.InnerService;
 import org.engine.process.performance.utils.ServiceStatus;
+import org.engine.process.performance.utils.Utils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -62,7 +64,11 @@ public class CreateActivitySingleMessage extends InnerService {
 	private List<Pair<String,Long>> rawDataRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> sourceRecordsList = new ArrayList<>(); 
 	private List<Pair<GenericRecord,Long>> updateRecordsList = new ArrayList<>(); 
-
+	final static public Logger logger = Logger.getLogger(CreateActivitySingleMessage.class);
+	static {
+		Utils.setDebugLevel(logger);
+	}
+	
 	public CreateActivitySingleMessage() {
 		super();
 	}
