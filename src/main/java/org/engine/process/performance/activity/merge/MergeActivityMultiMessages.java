@@ -191,7 +191,7 @@ public class MergeActivityMultiMessages extends InnerService {
 			callProducerWithAkka("merge", mergeEvent);
 		}
 		else {
-			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(getProperties(false))) {
+			try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(getProperties(true))) {
 				ProducerRecord<Object, Object> record = new ProducerRecord<>("merge",mergeEvent);
 				producer.send(record);
 			}
