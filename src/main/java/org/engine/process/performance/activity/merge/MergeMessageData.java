@@ -37,7 +37,7 @@ public class MergeMessageData implements SingleMessageData {
 		stringBuffer.append("Cycle NO: "+numOfCycle).append(endl);
 		stringBuffer.append("Update NO: "+numOfUpdate).append(endl);
 		stringBuffer.append("UUID list: "+Arrays.toString(mergeActivityConsumer.getUuidList())).append(endl);
-		stringBuffer.append("The action between topics  merge and update "+ mergeActivityConsumer.getTimeDiff() +" millisec").append(endl); 
+		stringBuffer.append("The action between topics merge and update "+ mergeActivityConsumer.getTimeDiff() +" millisec").append(endl); 
 		 
 	    return stringBuffer.toString();
 	}

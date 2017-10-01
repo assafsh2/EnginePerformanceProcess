@@ -27,7 +27,7 @@ public class SplitActivityMultiMessages extends InnerService {
 	final static private Logger logger = Logger.getLogger(SplitActivityMultiMessages.class);
 	private static final Object sonsList = null;
 	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"), logger);
+		Utils.setDebugLevel(logger);
 	}
 
 	@Override

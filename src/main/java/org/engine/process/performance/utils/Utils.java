@@ -19,10 +19,8 @@ import org.engine.process.performance.Main;
  
 public class Utils {
 
-	private static Random random; 
-	private Logger logger = Main.logger;
-	
-	
+	private static Random random;  
+	private static boolean testing = Main.testing;
 
 	static {
 		random = new Random();
@@ -88,12 +86,12 @@ public class Utils {
 	 * 
 	 * @param debugLevel
 	 */
-	public static void setDebugLevel(String debugLevel,Logger logger) {
+	public static void setDebugLevel(Logger logger) {
 
-
+		String debugLevel = System.getenv("DEBUG_LEVEL");		
 		if( Strings.isNullOrEmpty(debugLevel)) {
 			debugLevel = "ALL";
-		}
+		} 
 
 		switch (debugLevel) {
 
@@ -124,18 +122,15 @@ public class Utils {
 	 */
 	public Set<Pair<String,String>> getSonsFromRecrod(GenericRecord familyRecord) {		
 		
-		logger.debug("EntityFamily : "+ familyRecord.toString());
-		
 		Set<Pair<String,String>> set = new HashSet<>();	
 		@SuppressWarnings("unchecked")
 		List<GenericRecord> sonsList =  (List<GenericRecord>)familyRecord.get("sons");  
 		for(GenericRecord systemEntity : sonsList) {
-
+			
 			GenericRecord entityAttributes = (GenericRecord)systemEntity.get("entityAttributes");
 			String externalSystemID = (String) entityAttributes.get("externalSystemID").toString();
 			GenericRecord basicAttributes = (GenericRecord)entityAttributes.get("basicAttributes");
-			String sourceName = (String) basicAttributes.get("sourceName").toString();
-			logger.debug("External System ID : "+ externalSystemID + " Source Name : " + sourceName);
+			String sourceName = (String) basicAttributes.get("sourceName").toString(); 
 			set.add(new Pair<String,String>(externalSystemID,sourceName)); 
 		}		
 		return set;
@@ -145,15 +140,14 @@ public class Utils {
 
 		String kafkaAddress;
 		String schemaRegustryUrl;
-		if(Main.testing) {
+		if(testing) {
 			kafkaAddress = "192.168.0.51:9092 ";
 			schemaRegustryUrl = "http://schema-registry.kafka:8081";
 		}
 		else {
 			kafkaAddress = System.getenv("KAFKA_ADDRESS");
 			schemaRegustryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS"); 		
-		}
-		
+		}		
 
 		Properties props = new Properties();
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaAddress);

@@ -19,9 +19,8 @@ public class Main {
 
 	public static boolean testing = false;	
 	final static public Logger logger = Logger.getLogger(Main.class);
-
 	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+		Utils.setDebugLevel(logger);
 	}
 
 	public static void main(String[] args) throws InterruptedException,

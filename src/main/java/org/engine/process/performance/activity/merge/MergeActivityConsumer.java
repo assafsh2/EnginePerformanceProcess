@@ -30,7 +30,7 @@ public class MergeActivityConsumer extends ActivityConsumer{
 	private static boolean testing = Main.testing;
 	final static public Logger logger = Logger.getLogger(MergeActivityConsumer.class);
 	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+		Utils.setDebugLevel(logger);
 	}
 
 

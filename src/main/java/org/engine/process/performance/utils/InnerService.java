@@ -43,11 +43,6 @@ public abstract class InnerService {
 	abstract protected ServiceStatus execute() throws Exception;
 	abstract public String getOutput();
 	abstract public void printOutputToFile(String fileLocation);
-	
-	final static public Logger logger = Logger.getLogger(InnerService.class);
-	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
-	}	
 
 	protected Utils utils;
 

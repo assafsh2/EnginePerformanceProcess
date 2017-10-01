@@ -65,7 +65,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 	final static public Logger logger = Logger.getLogger(CreateActivityConsumer.class);
 
 	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+		Utils.setDebugLevel(logger);
 	}
 	
 	public CreateActivityConsumer(String sourceName, String externalSystemID, String lat , String longX) {

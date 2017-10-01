@@ -32,7 +32,7 @@ public class SplitActivityConsumer extends ActivityConsumer {
 	private static boolean testing = Main.testing;
 	final static private Logger logger = Logger.getLogger(SplitActivityConsumer.class);
 	static {
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"), logger);
+		Utils.setDebugLevel(logger);
 	}
  
 	@Override

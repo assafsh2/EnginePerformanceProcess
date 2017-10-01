@@ -35,7 +35,7 @@ public class CreateActivityMultiMessages extends InnerService {
 	final static public Logger logger = Logger.getLogger(CreateActivityMultiMessages.class);
 	static {
 
-		Utils.setDebugLevel(System.getenv("DEBUG_LEVEL"),logger);
+		Utils.setDebugLevel(logger);
 	}
 	
 	public CreateActivityMultiMessages() {

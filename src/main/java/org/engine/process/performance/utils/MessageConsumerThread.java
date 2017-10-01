@@ -1,12 +1,15 @@
 package org.engine.process.performance.utils;
 
-import org.apache.log4j.Logger;
-import org.engine.process.performance.Main;
+import org.apache.log4j.Logger; 
+import org.engine.process.performance.activity.merge.MergeActivityConsumer;
 
 public class MessageConsumerThread implements Runnable {
 
 	private SingleCycle singleCycle;
-	private Logger logger = Main.logger;
+	final private static Logger logger = Logger.getLogger(MergeActivityConsumer.class);
+	static {
+		Utils.setDebugLevel(logger);
+	}
 
 	public MessageConsumerThread(SingleCycle singleCycle) {
 

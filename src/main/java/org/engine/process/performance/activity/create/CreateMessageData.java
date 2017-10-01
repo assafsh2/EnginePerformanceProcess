@@ -2,8 +2,6 @@ package org.engine.process.performance.activity.create;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-import org.engine.process.performance.Main;
 import org.engine.process.performance.utils.ActivityConsumer;
 import org.engine.process.performance.utils.SingleMessageData;
 
@@ -22,8 +20,7 @@ public class CreateMessageData implements SingleMessageData{
 	private long lastOffsetForUpdate;
 	private long lastOffsetForSource;
 	private int numOfCycle;
-	private int numOfUpdate;
-	private Logger logger = Main.logger;
+	private int numOfUpdate; 
 
 	public CreateMessageData(Date startTime,String externalSystemID, String lat, String longX,String sourceName, CreateActivityConsumer createActivityConsumer) {
 	 
