@@ -6,7 +6,7 @@ import org.engine.process.performance.activity.merge.MergeActivityConsumer;
 public class MessageConsumerThread implements Runnable {
 
 	private SingleCycle singleCycle;
-	final private static Logger logger = Logger.getLogger(MergeActivityConsumer.class);
+	final private static Logger logger = Logger.getLogger(MessageConsumerThread.class);
 	static {
 		Utils.setDebugLevel(logger);
 	}

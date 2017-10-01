@@ -170,6 +170,7 @@ public class MergeActivityMultiMessages extends InnerService {
 			mergeMessageData.setNumOfUpdate(i);
 
 			singleCycle.addMessageData(mergeMessageData);
+			Thread.sleep(interval);
 		}
 		return singleCycle;
 	}
