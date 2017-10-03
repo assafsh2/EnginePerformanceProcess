@@ -113,7 +113,6 @@ public class SagaActivityMultiMessages extends InnerService {
 				cyclesList.add(singleCycle); 
 				Runnable worker = new MessageConsumerThread(singleCycle);
 				executor.execute(worker);
-				numOfCycles++;
 			}
 		}		
 		executor.shutdown(); 
@@ -221,7 +220,7 @@ public class SagaActivityMultiMessages extends InnerService {
 		List<UUID> entityAfterMerge = ((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.MERGE_IDENTIFIER_TYPE);
 	
 		sendSplitMessage(entityAfterMerge.get(0), sagaMessageData);		
-	//	((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.SPLIT_IDENTIFIER_TYPE);
+		((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.SPLIT_IDENTIFIER_TYPE);
 		((SagaActivityConsumer) sagaMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);
 		sagaMessageData.setNumOfCycle(numOfCycle); 
 
