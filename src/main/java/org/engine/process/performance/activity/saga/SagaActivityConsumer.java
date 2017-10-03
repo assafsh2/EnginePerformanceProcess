@@ -57,10 +57,10 @@ public class SagaActivityConsumer extends ActivityConsumer {
 	@Override
 	public void callConsumer() {		
 		mergeConsumer.seek(partitionMerge, lastOffsetForMerge);
-		mergeTimeStamp = callTopic("merge",Constant.MERGE_IDENTIFIER_TYPE);
+		mergeTimeStamp = callTopic("merge",Constant.MERGE_IDENTIFIER_TYPE,mergeConsumer);
 
 		splitConsumer.seek(partitionSplit, lastOffsetForSplit);
-		splitTimeStamp = callTopic("split",Constant.SPLIT_IDENTIFIER_TYPE); 
+		splitTimeStamp = callTopic("split",Constant.SPLIT_IDENTIFIER_TYPE,splitConsumer); 
 	} 
 
 	public void setLastOffsetForMerge(long lastOffsetForMerge) {
@@ -83,6 +83,10 @@ public class SagaActivityConsumer extends ActivityConsumer {
 		this.identifierId = identifierId;
 	}
 
+	public long getMergeTimeStamp() {
+		return mergeTimeStamp;
+	}
+	
 	public Pair<Long,Long> getTimeDiff() {
 		return new Pair<Long,Long>(updateForMergeTimeStamp - mergeTimeStamp, updateForSplitTimeStamp - splitTimeStamp);
 	}  
@@ -138,7 +142,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 	}
 
 	
-	private long callTopic(String topic,String identifierName) {
+	private long callTopic(String topic,String identifierName, KafkaConsumer<Object, Object> consumer) {
 		while (true) {
 			if (testing) {
 				List<Pair<GenericRecord, Long>> records = SagaActivityMultiMessages.callConsumersWithAkka(topic);
@@ -152,7 +156,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 				}
 			}
 			else {
-				ConsumerRecords<Object, Object> records = updateConsumer.poll(10000);
+				ConsumerRecords<Object, Object> records = consumer.poll(10000);
 				for (ConsumerRecord<Object, Object> param : records) {
 					GenericRecord record = (GenericRecord) param.value();
 					String metadata = (String) record.get("metadata").toString();

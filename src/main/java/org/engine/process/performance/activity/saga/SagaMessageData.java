@@ -18,7 +18,8 @@ public class SagaMessageData extends SingleMessageData {
 		stringBuffer.append("Cycle NO: " + numOfCycle).append(endl); 
 		SagaActivityConsumer sagaActivityConsumer = (SagaActivityConsumer) activityConsumer;
 
-		if (sagaActivityConsumer.getTimeDiff().getLeft() > 0) {
+		if (sagaActivityConsumer.getMergeTimeStamp() > 0 && 
+			sagaActivityConsumer.getTimeDiff().getRight() > 0) {
 			stringBuffer.append(
 					"The action between topics merge and update "
 							+ sagaActivityConsumer.getTimeDiff().getLeft()
