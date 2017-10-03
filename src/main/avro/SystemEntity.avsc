@@ -2,6 +2,6 @@
  "name": "SystemEntity",
  "namespace" : "org.z.entities.schema",
   "doc": "This is a schema of a single processed entity with all attributes.",
-  "fields": [ 
+  "fields": [   		
        {"name": "entityID", "type": "string"},
         {"name": "entityAttributes", "type": "GeneralEntityAttributes"}]}

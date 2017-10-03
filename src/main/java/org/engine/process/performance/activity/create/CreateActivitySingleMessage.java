@@ -11,21 +11,17 @@ import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
 import org.apache.avro.Schema; 
-import org.apache.avro.generic.GenericRecord; 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.avro.generic.GenericRecord;  
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.TopicPartition; 
 
 import akka.japi.Pair; 
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException; 
 
-import org.apache.kafka.clients.producer.ProducerConfig; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.apache.log4j.Logger;
 import org.engine.process.performance.utils.InnerService;

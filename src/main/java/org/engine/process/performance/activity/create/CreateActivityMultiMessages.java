@@ -9,12 +9,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List; 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors; 
 
 import org.apache.log4j.Logger; 
 import org.engine.process.performance.csv.CsvFileWriter;
-import org.engine.process.performance.csv.CsvRecordForCreate;
 import org.engine.process.performance.csv.TopicTimeData;
 import org.engine.process.performance.utils.InnerService;  
 import org.engine.process.performance.utils.Pair;
@@ -33,15 +31,12 @@ public class CreateActivityMultiMessages extends InnerService {
 	private String emptyString = "";	
 	final static public Logger logger = Logger.getLogger(CreateActivityMultiMessages.class);
 	static {
-
 		Utils.setDebugLevel(logger);
 	}
 	
 	public CreateActivityMultiMessages() {
-
 		super(); 
-		cyclesList = Collections.synchronizedList(new ArrayList<SingleCycle>());	
- 
+		cyclesList = Collections.synchronizedList(new ArrayList<SingleCycle>());	 
 	}
 
 	@Override
@@ -187,28 +182,21 @@ public class CreateActivityMultiMessages extends InnerService {
 
 		String externalSystemID = utils.randomExternalSystemID();
 		SingleCycle singleCycle = new SingleCycle(); 
-		double lat = 4.3;
-		double longX = 6.4;
 
 		for(int j = 0 ; j < numOfUpdatesPerCycle; j++) {
 			logger.debug("UPDATE " + j);
 
-			Date startTime = new Date(System.currentTimeMillis());
-			String latStr = Double.toString(lat);
-			String longXStr = Double.toString(longX);
-
-			CreateActivityConsumer createActivityConsumer = new CreateActivityConsumer(sourceName,externalSystemID,latStr,longXStr);					
+			Date startTime = new Date(System.currentTimeMillis()); 
+			String identifierId = utils.randomExternalSystemID();
+			CreateActivityConsumer createActivityConsumer = new CreateActivityConsumer(sourceName,externalSystemID,identifierId);					
 
 			createActivityConsumer.handleMessage(); 
-			CreateMessageData messageData = new CreateMessageData(startTime,externalSystemID,latStr, longXStr, sourceName,createActivityConsumer);
+			CreateMessageData messageData = new CreateMessageData(startTime,externalSystemID,identifierId, sourceName,createActivityConsumer);
 			messageData.setNumOfCycle(numOfCycle);
 			messageData.setNumOfUpdate(j);
-			singleCycle.addMessageData(messageData);
-			lat++;
-			longX++; 
+			singleCycle.addMessageData(messageData);  
 			Thread.sleep(interval);
 		}
-
 		return singleCycle;
 	}
 

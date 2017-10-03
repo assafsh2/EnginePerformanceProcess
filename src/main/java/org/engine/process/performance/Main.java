@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger; 
 import org.engine.process.performance.activity.create.CreateActivityMultiMessages;
-import org.engine.process.performance.activity.merge.MergeActivityMultiMessages;
+import org.engine.process.performance.activity.saga.SagaActivityMultiMessages;
 import org.engine.process.performance.utils.EventType;
 import org.engine.process.performance.utils.InnerService;
 import org.engine.process.performance.utils.ServiceStatus;
@@ -34,7 +34,7 @@ public class Main {
 		
 		if(testing) {			
 			printToFile = "false";
-			activity = "MERGE";
+			activity = "CREATE";
 		}
 
 		logger.debug("PRINT_TO_FILE::::::::" + printToFile);
@@ -53,11 +53,9 @@ public class Main {
 			service = new CreateActivityMultiMessages();
 			break;
 		case MERGE:
-			service = new MergeActivityMultiMessages();
-			break;
 		case SPLIT:
-
-			break;
+			service = new SagaActivityMultiMessages();
+			break; 
 		default:
 			logger.error("Activity " + activity + " is not supported");
 			System.exit(-1);

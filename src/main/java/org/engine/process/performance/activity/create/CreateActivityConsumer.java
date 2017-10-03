@@ -17,8 +17,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.clients.producer.KafkaProducer; 
 import org.apache.log4j.Logger;
 import org.engine.process.performance.Main;
-import org.engine.process.performance.activity.merge.MergeActivityConsumer;
+import org.engine.process.performance.activity.saga.SagaActivityConsumer;
 import org.engine.process.performance.utils.ActivityConsumer;
+import org.engine.process.performance.utils.Constant;
 import org.engine.process.performance.utils.Pair;
 import org.engine.process.performance.utils.Utils;
 
@@ -28,6 +29,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Properties;
+
+import joptsimple.internal.Strings;
 
 /**
  * @author assafsh
@@ -59,23 +62,25 @@ public class CreateActivityConsumer extends ActivityConsumer {
 	private TopicPartition partitionRawData;
 	private TopicPartition partitionSource;
 	private TopicPartition partitionUpdate;
-	private String lat;
-	private String longX;	
+	private String identifierId;
 	final static public Logger logger = Logger.getLogger(CreateActivityConsumer.class);
 
 	static {
 		Utils.setDebugLevel(logger);
 	}
 	
-	public CreateActivityConsumer(String sourceName, String externalSystemID, String lat , String longX) {
+	public CreateActivityConsumer(String sourceName, String externalSystemID, String identifierId) {
 
 		this.sourceName = sourceName; 
 		this.externalSystemID = externalSystemID; 
-		this.lat = lat;
-		this.longX = longX; 
+		this.identifierId = identifierId;
 		partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
 		partitionSource = new TopicPartition(sourceName, 0);
 		partitionUpdate = new TopicPartition("update", 0);
+	}
+	
+	public CreateActivityConsumer() {
+		super();
 	}
 
 	public void handleMessage() throws IOException {
@@ -108,7 +113,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		output.append("update :"+lastOffsetForUpdate).append(endl);
  
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(lat,longX));
+			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(identifierId));
 			producer.send(record); 
 
 		}
@@ -167,7 +172,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		this.lastOffsetForSource = lastOffsetForSource;
 	}
 	
-	private String getJsonGenericRecord(String lat,String longX) {
+	private String getJsonGenericRecord(String identifierId) {
 
 		/*
 		 * 
@@ -181,8 +186,9 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		String timestamp = Long.toString(System.currentTimeMillis());
 		
 		return   "{\"id\":\""+externalSystemID+"\"," 
-		+"\"lat\":\""+lat+"\"," 
-		+"\"xlong\":\""+longX+"\"," 
+		+"\"metadata\":\""+Constant.CREATE_IDENTIFIER_TYPE+"="+identifierId+"\"," 		
+		+"\"lat\": 222," 
+		+"\"xlong\": 333," 
 		+"\"source_name\":\""+sourceName+"\"," 
 		+"\"category\":\"boat\","
 		+"\"speed\":\"444\", "
@@ -198,40 +204,26 @@ public class CreateActivityConsumer extends ActivityConsumer {
 	private void callConsumersWithKafkaConsuemr(KafkaConsumer<Object, Object> consumer) throws JsonParseException, JsonMappingException, IOException {
 
 		boolean isRunning = true;
+		String metadata = null;
 		while (isRunning) {
 			ConsumerRecords<Object, Object> records = consumer.poll(10000);
 
 			for (ConsumerRecord<Object, Object> param : records) {
-				
-				String latTmp = null;
-				String longXTmp = null;
-				String externalSystemIDTmp = null;
-				
 				if( param.topic().equals("update") ||  param.topic().equals(sourceName)) {
-					
 					GenericRecord record = (GenericRecord)param.value();
-
-					GenericRecord entityAttributes =  ((GenericRecord) record.get("entityAttributes"));	
-					GenericRecord basicAttributes = (entityAttributes != null) ? ((GenericRecord) entityAttributes.get("basicAttributes")) : ((GenericRecord) record.get("basicAttributes"));
-					externalSystemIDTmp = (entityAttributes != null) ? entityAttributes.get("externalSystemID").toString() : record.get("externalSystemID").toString();
-					GenericRecord coordinate = (GenericRecord)basicAttributes.get("coordinate");			
-					latTmp = coordinate.get("lat").toString(); 
-					longXTmp = coordinate.get("long").toString();				
-					
+					metadata =  (String )record.get("metedata");
 				}
 				else {
 					Map<String,String> map = jsonToMap((String)param.value()); 
-					latTmp = map.get("lat"); 
-					longXTmp =  map.get("xlong");
-					externalSystemIDTmp = map.get("id"); 
+					metadata = map.get("metedata"); 
 				}
 				
-				if( externalSystemIDTmp.equals(externalSystemID) && lat.equals(latTmp) &&  longX.equals(longXTmp)) {
+				if(metadata.contains(Constant.CREATE_IDENTIFIER_TYPE+"="+identifierId)) {
 
 					if( param.topic().equals("update")) {
 						updateRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 					}
-					else if( param.topic().equals(sourceName)) {
+					else if(param.topic().equals(sourceName)) {
 						sourceRecordsList.add(new Pair<GenericRecord,Long>((GenericRecord)param.value(),param.timestamp()));
 					}
 					else {

@@ -1,7 +1,6 @@
 package org.engine.process.performance.utils;
 
-import org.apache.log4j.Logger; 
-import org.engine.process.performance.activity.merge.MergeActivityConsumer;
+import org.apache.log4j.Logger;  
 
 public class MessageConsumerThread implements Runnable {
 

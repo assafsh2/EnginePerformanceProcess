@@ -21,6 +21,7 @@ public class Utils {
 
 	private static Random random;  
 	private static boolean testing = Main.testing;
+	public static String MERGE_IDENTIFIER_TYPE = "MERGE_IDENTIFIER";
 
 	static {
 		random = new Random();
@@ -100,6 +101,9 @@ public class Utils {
 			break;
 		case "DEBUG":
 			logger.setLevel(Level.DEBUG);
+			break;
+		case "INFO":
+			logger.setLevel(Level.INFO);
 			break;
 		case "ERROR":
 			logger.setLevel(Level.ERROR);

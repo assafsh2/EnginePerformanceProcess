@@ -5,31 +5,26 @@ import java.util.Date;
 import org.engine.process.performance.utils.ActivityConsumer;
 import org.engine.process.performance.utils.SingleMessageData;
 
-public class CreateMessageData implements SingleMessageData{
+public class CreateMessageData extends SingleMessageData{
 	
 	private final Date startTime;
-	private final String externalSystemID;
-	private final String lat;
-	private final String longX;
+	private final String externalSystemID; 
 	private long rawDataToSourceDiffTime;
 	private long sourceToUpdateDiffTime;
 	private String endl = "\n";
-	private String sourceName;
-	private CreateActivityConsumer createActivityConsumer;
+	private String sourceName; 
 	private long lastOffsetForRawData;
 	private long lastOffsetForUpdate;
-	private long lastOffsetForSource;
-	private int numOfCycle;
-	private int numOfUpdate; 
-
-	public CreateMessageData(Date startTime,String externalSystemID, String lat, String longX,String sourceName, CreateActivityConsumer createActivityConsumer) {
-	 
+	private long lastOffsetForSource; 
+	private String identifierId;
+	
+	public CreateMessageData(Date startTime,String externalSystemID, String identifierId, String sourceName, CreateActivityConsumer createActivityConsumer) {
+		super();
 		this.startTime = startTime;
 		this.externalSystemID = externalSystemID;
-		this.lat = lat;
-		this.longX = longX;
-		this.sourceName = sourceName;
-		this.createActivityConsumer = createActivityConsumer;
+		this.identifierId = identifierId; 
+		this.sourceName = sourceName; 
+		this.activityConsumer = createActivityConsumer;
 	} 
 
 	public long getRawDataToSourceDiffTime() {
@@ -48,15 +43,10 @@ public class CreateMessageData implements SingleMessageData{
 		this.sourceToUpdateDiffTime = sourceToUpdateDiffTime;
 	} 
 
-	public CreateActivityConsumer getCreateActivityConsumer() {
-		return createActivityConsumer;
+	public ActivityConsumer getCreateActivityConsumer() {
+		return activityConsumer;
 	}
-
-	public void setCreateActivityConsumer(
-			CreateActivityConsumer createActivityConsumer) {
-		this.createActivityConsumer = createActivityConsumer;
-	} 
-	
+ 	
 	public long getLastOffsetForRawData() {
 		return lastOffsetForRawData;
 	}
@@ -79,33 +69,11 @@ public class CreateMessageData implements SingleMessageData{
 
 	public void setLastOffsetForSource(long lastOffsetForSource) {
 		this.lastOffsetForSource = lastOffsetForSource;
-	}
-
-	public int getNumOfCycle() {
-		return numOfCycle;
-	}
-
-	public void setNumOfCycle(int numOfCycle) {
-		this.numOfCycle = numOfCycle;
-	}
-
-	public int getNumOfUpdate() {
-		return numOfUpdate;
-	}
-
-	public void setNumOfUpdate(int numOfUpdate) {
-		this.numOfUpdate = numOfUpdate;
-	}
-
-	@Override
-	public ActivityConsumer getActivityConsumer() {
- 
-		return createActivityConsumer;
-	}
+	} 
 
 	@Override
 	public void setActivityConsumer(ActivityConsumer activityConsumer) {
-		this.createActivityConsumer = (CreateActivityConsumer)activityConsumer;
+		this.activityConsumer = (CreateActivityConsumer)activityConsumer;
 	}
 	
 	@Override
@@ -117,8 +85,7 @@ public class CreateMessageData implements SingleMessageData{
 		stringBuffer.append("Cycle NO: "+numOfCycle).append(endl);
 		stringBuffer.append("Update NO: "+numOfUpdate).append(endl);
 		stringBuffer.append("externalSystemID: "+externalSystemID).append(endl);
-		stringBuffer.append("lat: "+lat).append(endl);
-		stringBuffer.append("longX: "+longX).append(endl);
+		stringBuffer.append("IdentifierId: "+identifierId).append(endl); 
 		if( rawDataToSourceDiffTime > 0 ) {
 			stringBuffer.append("lastOffsetForRawData: "+lastOffsetForRawData).append(endl);			
 			stringBuffer.append("lastOffsetForSource: "+lastOffsetForSource).append(endl);	
