@@ -7,17 +7,14 @@ import java.util.List;
 import java.util.Map;  
 import java.util.stream.Collectors;
 
-import org.apache.avro.generic.GenericRecord; 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.avro.generic.GenericRecord;  
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition; 
 import org.apache.kafka.clients.producer.KafkaProducer; 
-import org.apache.log4j.Logger;
-import org.engine.process.performance.Main;
-import org.engine.process.performance.activity.saga.SagaActivityConsumer;
+import org.apache.log4j.Logger; 
 import org.engine.process.performance.utils.ActivityConsumer;
 import org.engine.process.performance.utils.Constant;
 import org.engine.process.performance.utils.Pair;
@@ -217,6 +214,9 @@ public class CreateActivityConsumer extends ActivityConsumer {
 					Map<String,String> map = jsonToMap((String)param.value()); 
 					metadata = map.get("metedata"); 
 				}
+				
+				if(Strings.isNullOrEmpty(metadata))
+					continue;
 				
 				if(metadata.contains(Constant.CREATE_IDENTIFIER_TYPE+"="+identifierId)) {
 
