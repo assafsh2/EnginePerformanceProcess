@@ -208,11 +208,11 @@ public class CreateActivityConsumer extends ActivityConsumer {
 			for (ConsumerRecord<Object, Object> param : records) {
 				if( param.topic().equals("update") ||  param.topic().equals(sourceName)) {
 					GenericRecord record = (GenericRecord)param.value();
-					metadata =  (String )record.get("metedata");
+					metadata =  (String )record.get("metadata");
 				}
 				else {
 					Map<String,String> map = jsonToMap((String)param.value()); 
-					metadata = map.get("metedata"); 
+					metadata = map.get("metadata"); 
 				}
 				
 				if(Strings.isNullOrEmpty(metadata))

@@ -2,7 +2,9 @@ package org.engine.process.performance.activity.saga;
 
 import java.util.ArrayList;
 import java.util.Arrays; 
+import java.util.HashSet;
 import java.util.List; 
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.avro.generic.GenericRecord;
@@ -91,8 +93,8 @@ public class SagaActivityConsumer extends ActivityConsumer {
 		return new Pair<Long,Long>(updateForMergeTimeStamp - mergeTimeStamp, updateForSplitTimeStamp - splitTimeStamp);
 	}  
 
-	public List<UUID> callUpdateTopic(String identifierName) {		
-		List<UUID> entitiesList = new ArrayList<>();
+	public Set<UUID> callUpdateTopic(String identifierName) {		
+		Set<UUID> entitiesList = new HashSet<>();
 		boolean isToContinue = true;
 		while (isToContinue) {
 			if (testing) {
@@ -120,7 +122,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 	}
 
 	private boolean isRecordMatched(String identifierName,
-							List<UUID> entitiesList, GenericRecord record, long timestamp) {
+							Set<UUID> entitiesList, GenericRecord record, long timestamp) {
 		if(record.get("metadata") == null) { 
 			return false;
 		}		
@@ -128,6 +130,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 		String uuid = (String) record.get("entityID").toString();
 		if (metadata.contains(identifierName+"="+identifierId)) {
 			logger.debug("Found ConsumerRecord for update : " + record);
+			logger.debug("Timetamp : " + timestamp);
 			entitiesList.add(UUID.fromString(uuid));			
 			if(identifierName.startsWith("MERGE")) {
 				updateForMergeTimeStamp = timestamp;

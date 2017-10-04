@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap; 
 import java.util.List;
 import java.util.Map; 
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.avro.generic.GenericRecord; 
@@ -217,9 +218,9 @@ public class SagaActivityMultiMessages extends InnerService {
 		
 		((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate); 
 		
-		List<UUID> entityAfterMerge = ((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.MERGE_IDENTIFIER_TYPE);
+		Set<UUID> entityAfterMerge = ((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.MERGE_IDENTIFIER_TYPE);
 	
-		sendSplitMessage(entityAfterMerge.get(0), sagaMessageData);		
+		sendSplitMessage((UUID)entityAfterMerge.toArray()[0], sagaMessageData);		
 		((SagaActivityConsumer)sagaMessageData.getActivityConsumer()).callUpdateTopic(Constant.SPLIT_IDENTIFIER_TYPE);
 		((SagaActivityConsumer) sagaMessageData.getActivityConsumer()).setLastOffsetForUpdate(lastOffsetForUpdate);
 		sagaMessageData.setNumOfCycle(numOfCycle); 
