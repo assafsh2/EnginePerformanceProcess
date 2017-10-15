@@ -96,6 +96,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 	public Set<UUID> callUpdateTopic(String identifierName) {		
 		Set<UUID> entitiesList = new HashSet<>();
 		boolean isToContinue = true;
+		updateConsumer.seek(partitionUpdate, lastOffsetForUpdate);
 		while (isToContinue) {
 			if (testing) {
 				List<Pair<GenericRecord, Long>> records = SagaActivityMultiMessages.callConsumersWithAkka("update");
@@ -106,8 +107,7 @@ public class SagaActivityConsumer extends ActivityConsumer {
 					}
 				}
 			} 
-			else {
-				updateConsumer.seek(partitionUpdate, lastOffsetForUpdate);
+			else { 
 				ConsumerRecords<Object, Object> records = updateConsumer.poll(10000);
 				for (ConsumerRecord<Object, Object> param : records) {
 					GenericRecord event = (GenericRecord) param.value();
