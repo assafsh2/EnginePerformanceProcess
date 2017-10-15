@@ -156,13 +156,15 @@ public class SagaActivityMultiMessages extends InnerService {
 		return output.toString();
 	}
 
-	private void calcStatistic(StringBuffer output, String topic, double[]diffTimeArray) {
+	private void calcStatistic(StringBuffer output, String topic, double[] diffTimeArray) {
 		output.append(
 				"The average between <"+topic+"> and <update> is "
 						+ utils.mean(diffTimeArray)).append(endl);
+		double[] arr =  Arrays.copyOf(diffTimeArray, diffTimeArray.length);		
+		Arrays.sort(arr);
 		output.append(
 				"The median between <"+topic+"> and <update> is "
-						+ utils.median(Arrays.copyOf(diffTimeArray,0))).append(endl);
+						+ utils.median(arr)).append(endl);
 		output.append(
 				"The standard deviation between <"+topic+"> and <update> is "
 						+ utils.standardDeviation(diffTimeArray)).append(endl);		
