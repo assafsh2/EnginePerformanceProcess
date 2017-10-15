@@ -162,7 +162,7 @@ public class SagaActivityMultiMessages extends InnerService {
 						+ utils.mean(diffTimeArray)).append(endl);
 		output.append(
 				"The median between <"+topic+"> and <update> is "
-						+ utils.median(diffTimeArray)).append(endl);
+						+ utils.median(Arrays.copyOf(diffTimeArray,0))).append(endl);
 		output.append(
 				"The standard deviation between <"+topic+"> and <update> is "
 						+ utils.standardDeviation(diffTimeArray)).append(endl);		
