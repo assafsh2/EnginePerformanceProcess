@@ -75,6 +75,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
 		int partition = utils.getPartition(externalSystemID,sourceName);
 		partitionSource = new TopicPartition(sourceName, partition);
+		logger.debug("===externalSystemID is "+externalSystemID+" partition is "+partition);
 		partitionUpdate = new TopicPartition("update", 0);
 	}
 	
@@ -100,7 +101,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		consumer2.assign(Arrays.asList(partitionUpdate));
 		consumer2.seekToEnd(Arrays.asList(partitionUpdate));
 		lastOffsetForUpdate = consumer2.position(partitionUpdate); 
-		
+		 
 		consumer3 = new KafkaConsumer<Object, Object>(propsWithAvro);
 		consumer3.assign(Arrays.asList(partitionSource));
 		consumer3.seekToEnd(Arrays.asList(partitionSource));
@@ -123,12 +124,15 @@ public class CreateActivityConsumer extends ActivityConsumer {
 
 		consumer.seek(partitionRawData, lastOffsetForRawData);
 		callConsumersWithKafkaConsuemr(consumer);
+		logger.debug("externalSystemID " +externalSystemID);
 
 		consumer2.seek(partitionUpdate, lastOffsetForUpdate);
 		callConsumersWithKafkaConsuemr(consumer2); 
+		logger.debug("externalSystemID " +externalSystemID);
 		
 		consumer3.seek(partitionSource, lastOffsetForSource);
 		callConsumersWithKafkaConsuemr(consumer3);
+		logger.debug("externalSystemID " +externalSystemID);
 		
 		Pair<GenericRecord,Long> update = updateRecordsList.stream().collect(Collectors.toList()).get(0);
 		logger.debug("====Consumer from topic update: "+update.toString());
