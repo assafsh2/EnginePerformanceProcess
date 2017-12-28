@@ -73,7 +73,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		this.identifierId = identifierId;
 		
 		partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		int partition = utils.getPartition(externalSystemID);
+		int partition = utils.getPartition(externalSystemID,sourceName);
 		partitionSource = new TopicPartition(sourceName, partition);
 		partitionUpdate = new TopicPartition("update", 0);
 	}

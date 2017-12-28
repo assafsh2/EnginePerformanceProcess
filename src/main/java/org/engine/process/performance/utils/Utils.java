@@ -1,7 +1,13 @@
 package org.engine.process.performance.utils;
  
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+
 import java.util.HashSet;
 import java.util.List; 
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -15,8 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.common.serialization.StringSerializer;  
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.engine.process.performance.Main; 
@@ -149,7 +154,7 @@ public class Utils {
 		String kafkaAddress;
 		String schemaRegustryUrl;
 		if(testing) {
-			kafkaAddress = "192.168.0.51:9092 ";
+			kafkaAddress = "192.168.0.50:9092 ";
 			schemaRegustryUrl = "http://schema-registry.kafka:8081";
 		}
 		else {
@@ -188,13 +193,33 @@ public class Utils {
 		return String.valueOf(d); 
 	}
 	
-	public int getPartition (String key) {  
+	public int getPartition (String key,String topic) {  
 		
-		String topic = System.getenv("SOURCE_NAME");
+		SchemaRegistryClient schemaRegistry = null;
+		if(Main.testing) {
+			schemaRegistry = new MockSchemaRegistryClient();
+		}
+		else {
+			String schemaRegustryUrl = System.getenv("SCHEMA_REGISTRY_ADDRESS");
+			String schemaRegistryIdentity = System.getenv("SCHEMA_REGISTRY_IDENTITY");
+			schemaRegistry = new CachedSchemaRegistryClient(schemaRegustryUrl, Integer.parseInt(schemaRegistryIdentity));
+		} 		
+		
 		try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(getProperties(true))) {
-			return consumer.partitionsFor(topic).size();				  
-		} 	
-		
+			int numOfPartitions = consumer.partitionsFor(topic).size();
+			
+			try(KafkaAvroSerializer keySerializer = new KafkaAvroSerializer(schemaRegistry)) {
+				Map<String,String> map = new ConcurrentHashMap<String, String>();		
+				map.put("schema.registry.url", "http://fake-url");
+				map.put("max.schemas.per.subject", String.valueOf(Integer.MAX_VALUE));		
+				keySerializer.configure(map, true);
+				
+				byte[] keyBytes	 = keySerializer.serialize(topic, key);
+				keySerializer.close();
+				return org.apache.kafka.common.utils.Utils.toPositive(org.apache.kafka.common.utils.Utils.murmur2(keyBytes)) % numOfPartitions;					
+			} 
+			
+		} 	 
 	}  
 
 }

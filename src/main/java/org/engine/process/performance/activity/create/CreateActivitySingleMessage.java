@@ -125,7 +125,7 @@ public class CreateActivitySingleMessage extends InnerService {
 	private void handleMessage(String lat,String longX) throws IOException, RestClientException {
 		
 		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		int partition = utils.getPartition(externalSystemID);
+		int partition = utils.getPartition(externalSystemID,sourceName);
 		TopicPartition partitionSource = new TopicPartition(sourceName, partition);
 		TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
