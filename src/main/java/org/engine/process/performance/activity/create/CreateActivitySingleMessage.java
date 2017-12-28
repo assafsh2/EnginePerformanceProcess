@@ -125,7 +125,8 @@ public class CreateActivitySingleMessage extends InnerService {
 	private void handleMessage(String lat,String longX) throws IOException, RestClientException {
 		
 		TopicPartition partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		TopicPartition partitionSource = new TopicPartition(sourceName, 0);
+		int partition = utils.getPartition(externalSystemID);
+		TopicPartition partitionSource = new TopicPartition(sourceName, partition);
 		TopicPartition partitionUpdate = new TopicPartition("update", 0);
 
 		rawDataRecordsList.clear();
@@ -166,7 +167,7 @@ public class CreateActivitySingleMessage extends InnerService {
 
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
 
-			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(lat,longX));
+			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",externalSystemID,getJsonGenericRecord(lat,longX));
 			producer.send(record); 
 
 		}

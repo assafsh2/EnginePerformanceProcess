@@ -71,8 +71,10 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		this.sourceName = sourceName; 
 		this.externalSystemID = externalSystemID; 
 		this.identifierId = identifierId;
+		
 		partitionRawData = new TopicPartition(sourceName+"-raw-data", 0);
-		partitionSource = new TopicPartition(sourceName, 0);
+		int partition = utils.getPartition(externalSystemID);
+		partitionSource = new TopicPartition(sourceName, partition);
 		partitionUpdate = new TopicPartition("update", 0);
 	}
 	
@@ -110,7 +112,7 @@ public class CreateActivityConsumer extends ActivityConsumer {
 		output.append("update :"+lastOffsetForUpdate).append(endl);
  
 		try(KafkaProducer<Object, Object> producer = new KafkaProducer<>(props)) {
-			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",getJsonGenericRecord(identifierId));
+			ProducerRecord<Object, Object> record = new ProducerRecord<>(sourceName+"-raw-data",externalSystemID,getJsonGenericRecord(identifierId));
 			producer.send(record); 
 
 		}

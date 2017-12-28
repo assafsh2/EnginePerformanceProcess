@@ -5,14 +5,18 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import joptsimple.internal.Strings;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.utils.Utils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.engine.process.performance.Main; 
@@ -183,4 +187,14 @@ public class Utils {
 		Long d =  new Double(num).longValue();
 		return String.valueOf(d); 
 	}
+	
+	public int getPartition (String key) {  
+		
+		String topic = System.getenv("SOURCE_NAME");
+		try(KafkaConsumer<Object, Object> consumer = new KafkaConsumer<Object, Object>(getProperties(true))) {
+			return consumer.partitionsFor(topic).size();				  
+		} 	
+		
+	}  
+
 }
